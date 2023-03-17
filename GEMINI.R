@@ -125,8 +125,15 @@ ggplot2::ggsave(filename = file.path(getwd(), "model_mae.png"), plot = gemini_pl
 
 gemini_scores <- gemini_score(Model)
 
+# create dataframe of the scores
+gemini_scores <- data.frame(Strong = gemini_scores$strong,
+           SensitiveLethality = gemini_scores$sensitive_lethality,
+           SensitiveRecovery = gemini_scores$sensitive_recovery)
+           
+colnames(gemini_scores) <- c('Strong', 'SensitiveLethality', 'SensitiveRecovery')
+
 # save environment and scores
-write.csv(gemini_scores$strong, file = save_loc)
+write.csv(gemini_scores, file = save_loc)
 
 save.image(file = file.path(getwd(), "env.RData"))
 
