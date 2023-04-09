@@ -1,0 +1,5 @@
+site_name: SLKB
+theme: readthedocs
+
+site_description: 'SLKB: Synthetic lethality knowledge base for gene combination double knockout experiments'
+repo_url: https://github.com/BirkanGokbag/SyntheticLethality-NewDB-Pipeline
