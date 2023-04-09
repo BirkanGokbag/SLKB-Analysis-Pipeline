@@ -1,4 +1,23 @@
-## Installation
+## Contact & Reference
+
+If you would like to cite SLKB, please use the following citations:
+
+```
+
+```
+
+```Biblex
+@Article{,
+    author = {Birkan Gökbağ, Shan Tang, Kunjie Fan, Lijun Cheng, Lang Li},
+    title = {SLKB: Synthetic lethality knowledge base for gene combination double knockout experiments},
+    journal = {-},
+    year = {2023},
+    volume = {-},
+    pages = {-},
+    doi = {-},
+    url = {-},
+  }
+```
 
 ### Installing from PyPI (Recommended)
 

@@ -1,30 +1,31 @@
-## Main API
+# API
 
-### Sample Data
+## File Formats
 
-![Sample Data](SampleData.png)
+For more details, follow the pipeline.
 
-Note: Label can be a number or be empty for non-classified celltypes. 
+### Sequence File
 
-### preprocessing
+### Counts File
 
-Removes a set of columns if specified, returns input CYTOF data with labels, the labels as a list, and the unlabeled input CyTOF data.
+### Score File
+
+## generate_database
+
+Creates a local sqlite3 database, using SLKB schema.
 
 ```
-X_data_labeled, y_data, data_unlabeled = DGCyTOF.preprocessing(dataset, columns_to_remove = [])
+db_engine = create_SLKB(location = os.getcwd(), name = 'myCDKO_db')
 ```
 
 **Params**:
 
-* dataset: CyTOF Data Matrix
-* columns_to_remove: List of columns to remove from the dataset
-    * default: Empty list
+* location: Location to store the database
+* name: Name of the database
 
 **Returns**:
 
-* X_data_labeled: input CYTOF data with labels
-* y_data: the labels as a list
-* data_unlabeled: non-classified CyTOF data
+* db_engine: Database engine link with sqlite3.
 
 <hr>
 

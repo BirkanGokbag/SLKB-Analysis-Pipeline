@@ -4,14 +4,17 @@
 
 Make sure that your SLKB pipeline package is appropriately installed. In order to run GEMINI Score and MAGeCK Score, you need to follow two additional steps:
 
-1. GEMINI Score: Make sure that you have an R environment with GEMINI installed (version >= 2.1.1). 
-2. MAGeCK Score: Make sure that you have MAGECK installed into your system path.
+1. GEMINI Score: Make sure that you have an R environment with GEMINI installed (version >= 2.1.1).
+2. MAGeCK Score: Make sure that you have MAGECK installed into your system path. 
 
-Run the following helper functions to make sure system is ready.
+If you cannot change your system path and/or need to load R environment seperately (e.g. working on HPC systems), this will be covered later.
+
+You can check whether you can access your R environment and MAGeCK on your computer.
 
 ```
-check_for_GEMINI() ## must pass
-check_for_MAGECK() ## must pass
+import shutil
+shutil.which('R') ## should yield accessed R environment location
+shutil.which('mageck') ## should yield MAGeCK location
 ```
 
 <hr>
@@ -56,21 +59,30 @@ Counts file contains X columns. Make sure that your counts annotation matches wi
 5. study_origin: Study identifier of the added data (i.e. PubmedID, MYCDKO)
 6. cell_line_origin: Cell line identifier of the added data (e.g. 22Rv1)
 7. replicate_names: Replicate names combined, separated by ';'
-8. replicate_counts: sgRNA counts from each replicate combined, separated by ';'
+8. count_replicates: sgRNA counts from each replicate combined, separated by ';'
 
 
 Example:
 <!-- <center> -->
 
-|sgRNA_guide_name|sgRNA_guide_sequence|sgRNA_guide_target|
-|:-:|:-:|:-:|
-|Gene1_sg1| CGCGC | Gene1 |
-|Gene1_sg2| CGTGC  |  Gene1 |
-|Gene2_sg1| CAAGC  |  Gene2 |
+|sgRNA_guide_1_name|sgRNA_guide_1_target|sgRNA_guide_2_name|sgRNA_guide_2_target|study_origin|cell_line_origin|replicate_names|count_replicates|
+|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+|   |   |   |   |   |   |   |   |
+|   |   |   |   |   |   |   |   |
+|   |   |   |   |   |   |   |   |
 
 #### Calculated SL Scores
 
-If you have calculated the gene level SL scores for your data already, you can add them here. Otherwise, leave empty.
+If you have calculated the gene level SL scores for your data already, you can add them here with the following columns. Otherwise, leave empty. 
+
+1. Gene_A
+2. Gene_B
+3. study_origin
+4. cell_line_origin
+5. SL_score
+6. SL_score_cutoff
+7. Stat_score
+8. stat_score_cutoff
 
 Example:
 
@@ -107,6 +119,11 @@ db_inserts = (sequence_ref = sequence_ref,
 
 If passed checks successfully, you will notice that db_inserts contains the 3 items: sequence, counts, and score reference. In the event no scores reference was given, a dummy score of 0 was given to each possible gene pair. This is done in order to make sure that gene pairs are unique to each study and cell line.
 
+If SL scores are supplied, by default, SL scores and statistical scores below the specified threshold are deemed as SL (column SL_or_not). Otherwise, they are not SL. You can customize this behavior by accessing the yielding db_inserts['scores_ref'].
+
+By default, control genes supplied in scores file are removed. 
+
+
 Finally, data can be inserted to the database.
 
 ```
@@ -134,6 +151,9 @@ cl_counts = study_counts[...]
 
 ```
 
+For MAGeCK Score, GEMINI Score, and Horlbeck Score, files will be created in process. You can specify the location to save your files (default: current working directory). This is done in order to enable quick loading to database for repeated analyses. GEMINI Score and MAGeCK score require file generation in order to run. In the event of updated counts file (e.g., adding additional counts), setting the parameter ```restart_analysis=TRUE``` will restart the analysis from scratch. 
+
+
 #### Median-B/NB Score
 
 ```
@@ -150,7 +170,9 @@ if ~check:
     insert
 ```
 
-#### MAGeCK-Score
+#### MAGeCK Score
+
+In MAGeCK score, files will be created in process. You can specify the location to save your files (default: current working directory). 
 
 ```
 if ~check:
@@ -160,6 +182,8 @@ if ~check:
 
 #### Horlbeck Score
 
+In Horlbeck score, files will be created in process. You can specify the location to save your files (default: current working directory). 
+
 ```
 if ~check:
     run_median
@@ -167,6 +191,8 @@ if ~check:
 ```
 
 #### GEMINI Score
+
+In GEMINI score, files will be created in process. You can specify the location to save your files (default: current working directory). Scores will be stored following GEMINI analysis for quick inserts to the database. 
 
 ```
 if ~check:
