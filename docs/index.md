@@ -2,38 +2,24 @@
 
 ## SLKB: Synthetic lethality knowledge base for gene combination double knockout experiments
 
-![Framework](SLKB.png)
+![Framework](images/SLKB.png)
 
 ...
 
 ## Database Design
 
-![Schema](DB.png)
+![Schema](images/DB.png)
 
 ...
 
 ## Calculated Scores Table
 
-![Scores](Calculation.png)
+![Scores](images/Calculation.png)
 
 ...
 
 ## Interactive Website
 
-Access link ...
+Located under its own [page.](website)
 
 ...
-
-## Commands
-
-* `mkdocs new [dir-name]` - Create a new project.
-* `mkdocs serve` - Start the live-reloading docs server.
-* `mkdocs build` - Build the documentation site.
-* `mkdocs -h` - Print help message and exit.
-
-## Project layout
-
-    mkdocs.yml    # The configuration file.
-    docs/
-        index.md  # The documentation homepage.
-        ...       # Other markdown pages, images and other files.

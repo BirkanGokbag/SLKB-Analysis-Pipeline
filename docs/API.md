@@ -10,7 +10,9 @@ For more details, follow the pipeline.
 
 ### Score File
 
-## generate_database
+## Functions For Data Insertion to KB
+
+### generate_database
 
 Creates a local sqlite3 database, using SLKB schema.
 
@@ -29,106 +31,134 @@ db_engine = create_SLKB(location = os.getcwd(), name = 'myCDKO_db')
 
 <hr>
 
-### train_model
+### prepare_study_for_export
 
-Trains the entered deep learning model using Pytorch. Utilized criterion is CrossEntropyLoss and optimizer is Adam optimizer with learning rate 0.001. The input model is set to evaluation mode after training.
-
-```
-DGCyTOF.train_model(model_fc, X_train, max_epochs = 20, params_train = {'batch_size':128, 'shuffle': True, 'num_workers': 6})
-```
-
-**Params**:
-
-* model_fc: PyTorch model, must have a forward function and utilize argmax as classification in its design
-* max_epochs: Number of epochs the model will be trained for 
-    * default: 20
-* params_train: dictionary containing information for trainloader, requires at least a batch_size, shuffle, and num_workers keys.
-    * batch_size: Number of data points in a single batch, default 128
-    * shuffle: Shuffle the batches prior to training, default True
-    * num_workers: Number of processes that will be used to load data, default 6
-
-**Returns**:
-
-* None: Nothing is returned, the model is set to eval mode after training. 
-
-<hr>
-
-### validate_model
-
-Runs validation on the validation dataset, print out the performance of the trained model for all cell types and returns them as a zip.
+Prepares the counts, scores, and sequences files for insertion into the DB.
 
 ```
-validation_results = DGCyTOF.validate_model(model_fc, val_tensor, classes, params_val = {'batch_size':10000, 'shuffle': False, 'num_workers': 6})
+db_inserts = prepare_study_for_export(score_ref, sequence_ref = None, counts_ref = None, study_controls = None, study_conditions = None, can_control_be_substring = True, remove_unrelated_counts = False)
 ```
 
 **Params**:
 
-* model_fc: Trained PyTorch model, must have a forward function and utilize argmax as classification in its design
-* val_tensor: Validation dataset as a Torch tensor.
-* classes: List of types of cells
-* params_val: dictionary containing information for dataloader, requires at least a batch_size, shuffle, and num_workers keys.
-    * batch_size: Number of data points in a single batch, default 128
-    * shuffle: Shuffle the batches prior to training, default True
-    * num_workers: Number of processes that will be used to load data, default 6
+* score_ref: A pandas table that adheres to the scores table template. 
+* sequence_ref: A pandas table that adheres to the sequence table template (default: None). 
+* counts_ref: A pandas table that adheres to the counts table template (default: None). 
+* study_controls: A list of control targets of the sgRNAs (default: None).
+* study_conditions: A list of two lists; first list contains the replicate names of initial time point, and second list contains the same for final time point (default: None).
+* can_control_be_substring: Can the controls be a substring of gene targets (in case of possible name conventions: default: True)
+* remove_unrelated_counts = Remove dual counts with targets that are outside of supplied scores targets? (default: False)
 
 **Returns**:
 
-* Zip of listed results. Each respective row contains pred,label,out in validation_results
-    * pred: Predicted label of a data point
-    * label: Actual label of a data point
-    * out: Output value of the data running forward through model_fc
+* A dictionary of three items:
+    * scores_ref: Contains the procesed scores table (if supplied)
+    * sequences_ref: Contains the procesed sequences table (if supplied)
+    * counts_ref: Contains the procesed counts table (if supplied)
 
-<hr>
+### insert_study_to_db
 
-### calibrate_data
-
-Calibrates the test set of the data based on the training model and validation results in performing over the test set. Test data either are classified more accurately or labeled as a new subtype based on the minimum threshold in classification. Minumum threshold is computed by obtaining the lowest correlation probability from validation results.
-Returns calibrated incorrect data.
+Inserts the counts to the designated DB.
 
 ```
-updated_incorrect_data = DGCyTOF.calibrate_data(model_fc, X_test, classes, validation_results, unlabeled_data)
+insert_study_to_db(SLKB_engine, db_inserts)
 ```
 
 **Params**:
 
-* model_fc: Trained PyTorch model, must have a forward function and utilize argmax as classification in its design
-* X_test: CyTOF data for test set.
-* classes: List of types of cells
-* validation_results: zip created by validate_model. Contains the following keys:
-    * pred: Predicted label of a data point
-    * label: Actual label of a data point
-    * out: Output value of the data running forward through model_fc
+* SLKB_engine: SQLAlchemy engine link
+* db_inserts: Processed data, obtained via ```prepare_study_for_export```
 
 **Returns**:
 
-* updated_incorrect_data: Calibrated incorrect data.
+* None
 
 <hr>
 
-### dimensionality_reduction_and_clustering
+## Functions for Scoring
 
-Reduce the dimensions of the input data using HDBSCAN + UMAP. While running, also displays the 2D clustered data (returned on clusterPlot).
+### ...
+
+### check_if_added_to_table
+
+If running the scoring methods multiple times, the method may be useful in skipping over the computation if there are gene pair records already in the database.
 
 ```
-data_umap, y_HDBSCAN_umap, new_subtypes, clusterPlot = DGCyTOF.dimensionality_reduction_and_clustering(input_data, n_neighbors = 5, min_dist = 0.01)
+check_if_added_to_table(curr_counts, score_name, SLKB_engine)
+```
+
+*Params**:
+
+* curr_counts: Counts to calculate the scores to.
+* score_name: Table to insert the scores to. Must be any of the 7 scoring table names:
+    * HORLBECK_SCORE
+    * MEDIAN_B_SCORE
+    * MEDIAN_NB_SCORE
+    * GEMINI_SCORE
+    * MAGECK_SCORE
+    * SGRA_DERIVED_B_SCORE
+    * SGRA_DERIVED_NB_SCORE
+
+**Returns**:
+
+* Boolean. True if records are inserted into the DB, False otherwise.
+
+**Helper Functions**
+
+Helper functions are used across different functions within SLKB. You may use them as is or modify them to suit your needs.
+
+## Helper Python Functions
+
+###
+
+## Helper R Functions
+
+SLKB's helper functions are also located within the R environment. Functions for majority vote calculation, network visualization, and venn diagram creatios are located under the website's GitHub link. They are not included within the python package. 
+
+To have access to those methods, you need to load in the functions to your R environment either through the URL or download them seperately.
+
+```
+source('R_loc')
+```
+
+### create_venn_diagram
+
+Returns the venn diagram for the yielded results.
+
+```
+create_venn_diagram(results, top_p = '10percent', output_dir = 'venn_results')
 ```
 
 **Params**:
 
-* input_data: CyTOF matrix data
-* n_neighbors: Number of neighbors set to cluster data points
-    * Default: 5
-* min_dist: Minimum distance between embeded points, utilized in the UMAP function.
-    * Default: 0.01
+* results: Obtain as a result of running the ```SLKB_query``` on Python.
+* top_p: Top percentage of pairs to consider as text (Default: '10percent')
+    * If entered a number and without the keyword 'percent', then that many top pairs are considered.
+* output_dir: Directory to produce results (Default: 'venn_results' folder in current working directory)
 
 **Returns**:
 
-* data_umap: Data with UMAP transform to 2 dimensions.
-* y_HDBSCAN_umap: HDBSCAN + UMAP of the input data
-* new_subtypes: Returns found new subtypes
-* clusterPlot: 2D plot of data with new subtypes
+* None
 
-<hr>
+### create_SL_network
+
+Create the SL network based on the pair file provided via VisNetwork. Normally, this is either the scores file or results file that is filtered by the user to include only the specified pairs. The network's edges are color coded based on ```color_base```, and the interactions between SL pairs are highlighted if ```target_genes``` is provided.
+
+```
+network <- create_SL_network(pair_file, color_base = None, target_genes = None, output_dir = 'network_results')
+```
+
+**Params**:
+
+* pair_file: DataFrame of score file (via dplyr and dbPool) and/or result file from ```SLKB_query```.
+* color_base: Criteria to color the edges of the SL network. Options: None (Default), 'cell_line_origin', 'study_origin'
+* target_genes: A list of genes that are targeted for color coding. (Default: None.)
+* output_dir: Directory to produce results (Default: 'network_results' folder in current working directory)
+
+**Returns**:
+
+* A visNetwork object
+
 
 **Additional Functions**
 
@@ -175,4 +205,4 @@ figure = DGCyTOF.Dim_Red_Plot_3d(data, labels, all_celltypes)
 
 <hr>
 
-© Copyright 2020, The Ohio State University, Biomedical Informatics
+© Copyright 2023, The Ohio State University, College of Medicine, Biomedical Informatics

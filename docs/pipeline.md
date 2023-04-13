@@ -4,7 +4,7 @@
 
 Make sure that your SLKB pipeline package is appropriately installed. In order to run GEMINI Score and MAGeCK Score, you need to follow two additional steps:
 
-1. GEMINI Score: Make sure that you have an R environment with GEMINI installed (version >= 2.1.1).
+1. GEMINI Score: Make sure that you have an R environment with GEMINI installed (version >= 2.1.1), and ggplot2 (will be installed alongside GEMINI).
 2. MAGeCK Score: Make sure that you have MAGECK installed into your system path. 
 
 If you cannot change your system path and/or need to load R environment seperately (e.g. working on HPC systems), this will be covered later.
@@ -23,8 +23,12 @@ shutil.which('mageck') ## should yield MAGeCK location
 
 First, we start with creating a local database to store the CRISPR synthetic lethality data at hand. We start by creating a database named **myCDKO_db** at the desired location.
 
+Note: The pipeline will add in the scores one at a time **after** the counts and sequence files will be deposited to the database. Thus, foreign key (FK) constrait will fail. For that reason, in the pipeline, the starting database starts with foreign keys disabled by default. 
+
+Alternatively, you could enable them, run every scoring method, and insert into the tables in one transaction. However, due to the runtimes in some of the scores being very high, this is not recommended. 
+
 ```
-create_SLKB(location = os.getcwd(), name = 'myCDKO_db')
+db_engine = create_SLKB(location = os.getcwd(), name = 'myCDKO_db', disable_foreign_keys = True)
 ```
 
 ### Preparing Data for Insert
@@ -94,6 +98,14 @@ Example:
 
 <hr>
 
+### Accessing Database
+
+Database contents can be accessed externally, and also to insert records. In this pipeline, sqlalchemy will be used to load in the database we have just created. The following codes need to be ran to ensure score calculation is correct. 
+
+```
+SLKB_engine = sqlalchemy.create_engine(db_engine)
+```
+
 ### Inserting Data to Database
 
 Following data preperation, the data is now ready to be processed. We will need to declare two additonal variables before calling the processing function:
@@ -106,15 +118,15 @@ Example:
 sequence_ref = ...
 counts_ref = ...
 scores_ref = ...
-control_list = ['CONTROL']
-timepoint_list = [['T0_rep1', 'T0_rep2', 'T0_rep3'],
+study_controls = ['CONTROL']
+study_conditions = [['T0_rep1', 'T0_rep2', 'T0_rep3'],
                     ['TEnd_rep1', 'TEnd_rep2', 'TEnd_rep3']]
 
-db_inserts = (sequence_ref = sequence_ref, 
-                counts_ref = counts_ref,
-                scores_ref = scores_ref,
-                control_list = control_list,
-                timepoint_list = timepoint_list)
+db_inserts = prepare_study_for_export(sequence_ref = sequence_ref, 
+                                                     counts_ref = counts_ref,
+                                                     scores_ref = scores_ref,
+                                                     study_controls = study_controls,
+                                                     study_conditions = study_conditions)
 ```
 
 If passed checks successfully, you will notice that db_inserts contains the 3 items: sequence, counts, and score reference. In the event no scores reference was given, a dummy score of 0 was given to each possible gene pair. This is done in order to make sure that gene pairs are unique to each study and cell line.
@@ -123,16 +135,11 @@ If SL scores are supplied, by default, SL scores and statistical scores below th
 
 By default, control genes supplied in scores file are removed. 
 
-
 Finally, data can be inserted to the database.
 
 ```
-db_inserts
+insert_study_to_db(dSLKB_engine, db_inserts)
 ```
-
-### Accessing Database
-
-Database contents can be accessed externally. In this pipeline, sqlalchemy will be used to load in the database we have just created. The following codes need to be ran to ensure score calculation is correct. 
 
 ### Calculating SL Scores and Inserting to Database
 
@@ -143,11 +150,39 @@ Score calculation methods are independent of each other. They can be ran in any 
 
 #### Initial steps
 
-SL scores for the gene pairs are calculated for each cell line individually under each study. First, we filter the counts to obtain the study counts, followed by the cell line counts.
+SL scores for the gene pairs are calculated for each cell line individually under each study and cell line. First, we filter the counts to obtain the study counts, followed by the cell line counts.
 
 ```
-study_counts = ...
-cl_counts = study_counts[...]
+
+# read the data
+
+# experiment design
+experiment_design = pd.read_sql_table('CDKO_EXPERIMENT_DESIGN', SLKB_engine, index_col = 'sgRNA_id')
+experiment_design.reset_index(drop = True, inplace = True)
+experiment_design.index.rename('sgRNA_id', inplace = True)
+
+# counts
+counts = pd.read_sql_table('CDKO_SGRNA_COUNTS', SLKB_engine, index_col = 'sgRNA_pair_id')
+counts.reset_index(drop = True, inplace = True)
+counts.index.rename('sgRNA_pair_id', inplace = True)
+
+# scores
+scores = pd.read_sql_table('CDKO_ORIGINAL_SL_RESULTS', SLKB_engine, index_col = 'id')
+scores.reset_index(drop = True, inplace = True)
+scores.index.rename('gene_pair_id', inplace = True)
+
+# join the tables together
+counts = counts.merge(experiment_design, how = 'left', left_on = 'guide_1_id', right_index = True, suffixes = ('', '_g1'))
+counts = counts.merge(experiment_design, how = 'left', left_on = 'guide_2_id', right_index = True, suffixes = ('', '_g2'))
+# rename
+counts = counts.rename({'sgRNA_guide_name': 'sgRNA_guide_name_g1',
+                        'sgRNA_guide_seq': 'sgRNA_guide_seq_g1',
+                        'sgRNA_target_name': 'sgRNA_target_name_g1',
+                        'study_origin_x': 'study_origin',
+                        'cell_line_origin_x': 'cell_line_origin'}, axis = 1)
+
+
+curr_counts = counts[(counts['study_origin'] == 'myStudy') & (counts['cell_line_origin'] == 'myCL')]
 
 ```
 
@@ -157,17 +192,21 @@ For MAGeCK Score, GEMINI Score, and Horlbeck Score, files will be created in pro
 #### Median-B/NB Score
 
 ```
-if ~check:
-    run_median
-    insert
+if check_if_added_to_table(curr_counts.copy(), 'MEDIAN_NB_SCORE', SLKB_engine):
+    median_res = run_median_scores(curr_counts.copy())
+    add_table_to_db(curr_counts.copy(), median_res['MEDIAN_NB_SCORE'], 'MEDIAN_NB_SCORE', SLKB_engine)
+    if median_res['MEDIAN_B_SCORE'] is not None:
+        add_table_to_db(curr_counts.copy(), median_res['MEDIAN_B_SCORE'], 'MEDIAN_B_SCORE', SLKB_engine)
 ```
 
 #### sgRNA-Derived-B/NB Score
 
 ```
-if ~check:
-    run_median
-    insert
+if not check_if_added_to_table(curr_counts.copy(), 'SGRA_DERIVED_NB_SCORE', SLKB_engine):
+    sgRNA_res = run_sgrna_scores(curr_counts.copy())
+    add_table_to_db(curr_counts.copy(), sgRNA_res['SGRA_DERIVED_NB_SCORE'], 'SGRA_DERIVED_NB_SCORE', SLKB_engine)
+    if sgRNA_res['SGRA_DERIVED_B_SCORE'] is not None:
+        add_table_to_db(curr_counts.copy(), sgRNA_res['SGRA_DERIVED_B_SCORE'], 'SGRA_DERIVED_B_SCORE', SLKB_engine)
 ```
 
 #### MAGeCK Score
