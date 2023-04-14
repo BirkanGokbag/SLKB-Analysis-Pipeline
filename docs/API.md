@@ -77,6 +77,8 @@ insert_study_to_db(SLKB_engine, db_inserts)
 
 ## Functions for Scoring
 
+command_line_params = []
+
 ### ...
 
 ### check_if_added_to_table

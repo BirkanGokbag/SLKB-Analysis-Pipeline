@@ -19,6 +19,9 @@ shutil.which('mageck') ## should yield MAGeCK location
 
 <hr>
 
+### SLKB Pipeline Template
+
+A template has been prepared that follows through the guide's steps. Feel free to install it from its GitHub [link](https://www.google.com) following SLKB package's installation. 
 ### Starting with a local database (SLKB Schema)
 
 First, we start with creating a local database to store the CRISPR synthetic lethality data at hand. We start by creating a database named **myCDKO_db** at the desired location.
@@ -138,7 +141,7 @@ By default, control genes supplied in scores file are removed.
 Finally, data can be inserted to the database.
 
 ```
-insert_study_to_db(dSLKB_engine, db_inserts)
+insert_study_to_db(SLKB_engine, db_inserts)
 ```
 
 ### Calculating SL Scores and Inserting to Database
@@ -211,42 +214,150 @@ if not check_if_added_to_table(curr_counts.copy(), 'SGRA_DERIVED_NB_SCORE', SLKB
 
 #### MAGeCK Score
 
-In MAGeCK score, files will be created in process. You can specify the location to save your files (default: current working directory). 
+In MAGeCK score, files will be created in process. You can specify the location to save your files (default: current working directory). If you wish to re-run to store new results in its stead, set ```re_run``` to True.
+
+MAGeCK is run through a script file at the designated location. If you need to load in any packages or set path to your mageck installation, please supply them to cmd_params.
 
 ```
-if ~check:
-    run_median
-    insert
+cmd_params = []
+if not check_if_added_to_table(curr_counts.copy(), 'MAGECK_SCORE', SLKB_engine):
+    mageck_res = run_mageck_score(curr_counts.copy(), curr_study = curr_study, curr_cl = curr_cl, store_loc = os.getcwd(), save_dir = 'MAGECK_Files', command_line_params = cmd_params,re_run = False)
+    add_table_to_db(curr_counts.copy(), mageck_res['MAGECK_SCORE'], 'MAGECK_SCORE', SLKB_engine)
+        
 ```
 
 #### Horlbeck Score
 
-In Horlbeck score, files will be created in process. You can specify the location to save your files (default: current working directory). 
+In Horlbeck score, files will be created in process. You can specify the location to save your files (default: current working directory). If you wish to re-run to store new results in its stead, set ```re_run``` to True.
 
 ```
-if ~check:
-    run_median
-    insert
+if not check_if_added_to_table(curr_counts.copy(), 'HORLBECK_SCORE', SLKB_engine):
+    horlbeck_res = run_horlbeck_score(curr_counts.copy(), curr_study = curr_study, curr_cl = curr_cl, store_loc = os.getcwd(), save_dir = 'HORLBECK_Files', do_preprocessing = True, re_run = False)
+    add_table_to_db(curr_counts.copy(), horlbeck_res['HORLBECK_SCORE'], 'HORLBECK_SCORE', SLKB_engine)
 ```
 
 #### GEMINI Score
 
-In GEMINI score, files will be created in process. You can specify the location to save your files (default: current working directory). Scores will be stored following GEMINI analysis for quick inserts to the database. 
+In GEMINI score, files will be created in process. You can specify the location to save your files (default: current working directory). Scores will be stored following GEMINI analysis for quick inserts to the database. If you wish to re-run to store new results in its stead, set ```re_run``` to True.
+
+Similarly to MAGeCK, GEMINI is run through a script file at the designated location. If you need to load in any packages or set path to your mageck installation, please supply them to cmd_params.
 
 ```
-if ~check:
-    run_median
-    insert
+cmd_params = ['module load R/4.1.0']
+if not check_if_added_to_table(curr_counts.copy(), 'GEMINI_SCORE', SLKB_engine):
+    gemini_res = run_gemini_score(curr_counts.copy(), curr_study = curr_study, curr_cl = curr_cl, store_loc = os.getcwd(), save_dir = 'GEMINI_Files', command_line_params = cmd_params, re_run = False)
+    add_table_to_db(curr_counts.copy(), gemini_res['GEMINI_SCORE'], 'GEMINI_SCORE', SLKB_engine)
 ```
 
 ### Query Results
 
-Following the score calculations, the query is relatively easy. In this snippet of code, we will be iterating over the all available data in the database and creating a score table that can be exported
+Following the score calculations, the query is relatively easy. In this snippet of code, we will be iterating over the all available data in the database and creating a score table that can be exported.
 
 ```
-loop and export
+
+# read the data
+
+# experiment design
+experiment_design = pd.read_sql_table('CDKO_EXPERIMENT_DESIGN', SLKB_engine, index_col = 'sgRNA_id')
+experiment_design.drop(['study_origin'], axis = 1, inplace = True)
+experiment_design.reset_index(drop = True, inplace = True)
+experiment_design.index.rename('sgRNA_id', inplace = True)
+
+# counts
+counts = pd.read_sql_table('CDKO_SGRNA_COUNTS', SLKB_engine, index_col = 'sgRNA_pair_id')
+counts.reset_index(drop = True, inplace = True)
+counts.index.rename('sgRNA_pair_id', inplace = True)
+
+# scores
+scores = pd.read_sql_table('CDKO_ORIGINAL_SL_RESULTS', SLKB_engine, index_col = 'gene_pair_id')
+
+# join the tables together
+counts = counts.merge(scores, how = 'left', left_on = 'gene_pair_id', right_index = True)
+counts = counts.merge(experiment_design, how = 'left', left_on = 'guide_1_id', right_index = True, suffixes = ('', '_g1'))
+counts = counts.merge(experiment_design, how = 'left', left_on = 'guide_2_id', right_index = True, suffixes = ('', '_g2'))
+# rename
+counts = counts.rename({'sgRNA_guide_name': 'sgRNA_guide_name_g1',
+                        'sgRNA_guide_seq': 'sgRNA_guide_seq_g1',
+                        'sgRNA_target_name': 'sgRNA_target_name_g1',
+                        'study_origin_x': 'study_origin',
+                        'cell_line_origin_x': 'cell_line_origin'}, axis = 1)
+
+experiment_design = pd.read_sql_table('CDKO_EXPERIMENT_DESIGN', SLKB_engine, index_col = 'sgRNA_id')
+experiment_design.reset_index(drop = True, inplace = True)
+experiment_design.index.rename('sgRNA_id', inplace = True)
+
+# tables to obtain the data from
+all_results_tables = ['HORLBECK_SCORE', 
+                      'MAGECK_SCORE', 
+                      'MEDIAN_NB_SCORE', 
+                      'MEDIAN_B_SCORE', 
+                      'SGRA_DERIVED_NB_SCORE', 
+                      'SGRA_DERIVED_B_SCORE', 
+                      'GEMINI_SCORE']
+
+#################
+
+all_scores = []
+for curr_study in available_studies:
+    print('Working on study: ' + curr_study)
+
+    # get study counts and seq
+    study_counts = counts.loc[counts['study_origin'] == study_name_to_pubmed_id[curr_study]].copy()
+
+    curr_seq_ids = np.array(sorted(list(set(study_counts['guide_1_id'].tolist() + study_counts['guide_2_id'].tolist()))))
+    study_sequences = experiment_design.loc[curr_seq_ids]
+
+    # the analysis runs for each individual cell line
+    available_cell_lines = set(study_counts['cell_line_origin'])
+
+
+    for curr_cl in available_cell_lines:
+        # store results here
+        study_scores = []
+    
+        print('Working on cell line: ' + curr_cl)
+        curr_counts = study_counts.loc[study_counts['cell_line_origin'] == curr_cl].copy()
+        
+        for table_name in all_results_tables:
+            # add the result of the table to the list
+            study_scores.append(query_result_table(curr_counts.copy(), table_name, curr_study, curr_cl, SLKB_engine))
+    
+        # remove duplicate annotation columns
+        study_scores = pd.concat(study_scores, axis = 1, ignore_index = False)
+        study_scores = study_scores.loc[:,~study_scores.columns.duplicated(keep = 'last')].copy()
+        
+        # make sure the annotations are all filled
+        study_scores['gene_pair'] = study_scores.index
+        study_scores['study_origin'] = curr_study
+        study_scores['cell_line_origin'] = curr_cl
+        
+        # reset the index, gene_pair -> id
+        study_scores.reset_index(drop = True, inplace = True)
+
+        # add to big table 
+        all_scores.append(study_scores)
+    
+    print('-----')
+    
+print('Done getting all data!')
+    
+# combine the scores at the end
+all_scores = pd.concat(all_scores, axis = 0, ignore_index = True)
+
+# add individual genes
+all_scores['gene_1'] = [i.split('|')[0] for i in all_scores['gene_pair']]
+all_scores['gene_2'] = [i.split('|')[1] for i in all_scores['gene_pair']]
+
+# sort such that all annotations are at the front
+all_columns = sorted(list(all_scores.columns))
+annotation_columns = ['gene_pair', 'gene_1', 'gene_2', 'study_origin', 'cell_line_origin']
+
+# get the final scores
+all_scores = all_scores.loc[:, annotation_columns + [i for i in all_columns if i not in annotation_columns]]
 ```
 
 ### Further Analyses
 
-SLKB web application is available for download to help analyze your generated data. You can access the website at the following link [], and it's code at the link []. You will need to enter the database into the KB/ folder and calculated scores into the www/ folder with their appropriate names (db: SLKB.sqlite3, www: SLKB_calculated_scores.csv)
+SLKB web application is available for download to help analyze your generated data. You can access the website at the following [link](https://www.google.com), and it's code at the link [link](https://www.google.com). You will need to enter the database into the KB/ folder and calculated scores into the www/ folder with their appropriate names (db: SLKB.sqlite3, www: SLKB_calculated_scores.csv)
+
+Alternatively, you can access its helper functions. Discussed in the [API](API.md).
