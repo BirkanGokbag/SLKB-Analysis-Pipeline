@@ -7,7 +7,16 @@ import re
 import os
 from setuptools import find_packages, setup
 
-DEPENDENCIES = []
+DEPENDENCIES = ['pandas==1.4.2',
+'numpy==1.21.0',
+'SQLAlchemy==1.4.32',
+'scipy==1.7.3',
+'ipykernel==6.9.1',
+'ipython==8.2.0',
+'ipython-genutils==0.2.0',
+'ipywidgets==7.6.5',
+'jupyterlab==3.3.2']
+
 CURDIR = os.path.abspath(os.path.dirname(__file__))
 
 with io.open(os.path.join(CURDIR, "README.md"), "r", encoding="utf-8") as f:
