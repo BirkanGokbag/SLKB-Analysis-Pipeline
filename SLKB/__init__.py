@@ -16,14 +16,41 @@ import sqlalchemy
 
 from sqlalchemy.engine import Engine
 from sqlalchemy import event
+
+import pkg_resources
+PACKAGE_PATH = pkg_resources.resource_filename('SLKB', '/')
+
 # to enable foreign keys constraint
 @event.listens_for(Engine, "connect")
 def set_sqlite_pragma(dbapi_connection, connection_record):
     cursor = dbapi_connection.cursor()
     cursor.execute("PRAGMA foreign_keys=ON")
     cursor.close()
+
+
+def load_demo_data():
+    '''
+    A demo data is available for loading. Additional details can be found in the [pipeline](pipeline.md).
+
+    **Params**:
+
+    * None.
+
+    **Returns**:
+
+    * demo_data. A list of 3 items: sequence file, counts, fle, and score file.
+    '''
+    # load up the demo data and return
+    data_loc = os.path.join(PACKAGE_PATH, 'files', 'demo_data.pickle')
+    with open(data_loc, 'rb') as handle:
+        toy_data = pickle.load(handle)
+    return(toy_data)
+    
     
 def check_repeated_constructs(x, index_loc):
+    '''
+    Helper function, Returns location of counts with respect to study conditions/replicate names.
+    '''
     if len(x) < max(index_loc):
         sub = index_loc[index_loc < len(x)]
         return(x[sub])
@@ -31,7 +58,18 @@ def check_repeated_constructs(x, index_loc):
         return(x[index_loc])
     
 def create_SLKB(location = os.getcwd(), name = 'myCDKO_db', disable_foreign_keys = True):
+    '''
+    Creates a local sqlite3 database, using SLKB schema.
 
+    **Params**:
+
+    * location: Location to store the database
+    * name: Name of the database
+
+    **Returns**:
+
+    * db_engine: Database engine link with sqlite3.
+    '''
     # create connection
     conn = sqlite3.connect(name) 
 
@@ -201,7 +239,27 @@ def create_SLKB(location = os.getcwd(), name = 'myCDKO_db', disable_foreign_keys
 ###### Data Preperation Function
 
 def prepare_study_for_export(sequence_ref, counts_ref, score_ref, study_controls = None, study_conditions = None, can_control_be_substring = True, remove_unrelated_counts = False):
-    
+    '''
+        
+    Prepares the counts, scores, and sequences files for insertion into the DB.
+
+    **Params**:
+
+    * score_ref: A pandas table that adheres to the scores table template. 
+    * sequence_ref: A pandas table that adheres to the sequence table template (default: None). 
+    * counts_ref: A pandas table that adheres to the counts table template (default: None). 
+    * study_controls: A list of control targets of the sgRNAs (default: None).
+    * study_conditions: A list of two lists; first list contains the replicate names of initial time point, and second list contains the same for final time point (default: None).
+    * can_control_be_substring: Can the controls be a substring of gene targets (in case of possible name conventions: default: True)
+    * remove_unrelated_counts = Remove dual counts with targets that are outside of supplied scores targets? (default: False)
+
+    **Returns**:
+
+    * A dictionary of three items:
+        * scores_ref: Contains the procesed scores table (if supplied)
+        * sequences_ref: Contains the procesed sequences table (if supplied)
+        * counts_ref: Contains the procesed counts table (if supplied)
+    '''
     ## make sure the columns are within each table, if not return error
     sequence_ref_needed_columns = {'sgRNA_guide_name', 'sgRNA_guide_seq', 'sgRNA_target_name'}
     
@@ -457,14 +515,6 @@ def prepare_study_for_export(sequence_ref, counts_ref, score_ref, study_controls
         # add study origin as well
         sequence_ref['study_origin'] = [counts_ref['study_origin'].iloc[0]] * sequence_ref.shape[0]
         
-        # remove the sgRNAs that were not used
-#         all_used_sgRNAs = set(counts_ref['guide_1'].tolist() + counts_ref['guide_2'].tolist())
-#         all_used_sgRNAs = all_used_sgRNAs.intersection(set(sequence_ref['sgRNA_guide_name']))
-        
-#         print('Removed non-used sgRNAs:' + str((~(sequence_ref['sgRNA_guide_name'].isin(list(all_used_sgRNAs)))).sum()))
-        
-#         sequence_ref = sequence_ref.loc[sequence_ref['sgRNA_guide_name'].isin(list(all_used_sgRNAs))]
-        
         sequence_ref.reset_index(drop=True, inplace = True)
     
     ################################# sequence ref - DONE
@@ -476,7 +526,19 @@ def prepare_study_for_export(sequence_ref, counts_ref, score_ref, study_controls
 
 
 def insert_study_to_db(engine_link, db_inserts):
-    
+    '''
+    Inserts the counts to the designated DB.
+
+    **Params**:
+
+    * SLKB_engine: SQLAlchemy engine link
+    * db_inserts: Processed data, obtained via ```prepare_study_for_export```
+
+    **Returns**:
+
+    * None
+
+    '''
     # first, get the metadata
     db_metadata = sqlalchemy.MetaData(bind=engine_link)
     db_metadata.reflect(engine_link)
@@ -625,7 +687,9 @@ def insert_study_to_db(engine_link, db_inserts):
 ###### Score Analysis Functions
 
 def get_raw_counts(curr_counts):
-    
+    '''
+    Helper function, gets the raw counts based on the T0 and TEnd annotations of the sample names
+    '''
     print('Getting raw counts...')
     # get counts
     T0_counts = curr_counts['T0_counts'].apply(    
@@ -658,8 +722,10 @@ def get_raw_counts(curr_counts):
     
     return((T0_counts, TEnd_counts))
 
-def filter_counts(curr_counts, filtering_counts = 100):
-    
+def filter_counts(curr_counts, filtering_counts = 35):
+    '''
+    Helper function, filters sgRNAs with counts less than the threshold
+    '''
     print(' '.join(["Filtering enabled... Condition:", str(filtering_counts), "counts"]))
     
     curr_counts[curr_counts < filtering_counts] = np.nan
@@ -814,7 +880,24 @@ def run_horlbeck_preprocessing(curr_counts, filterThreshold = 35, pseudocount = 
     return(curr_counts)
 
 def run_horlbeck_score(curr_counts, curr_study, curr_cl, do_preprocessing = True, store_loc = os.getcwd(), save_dir = 'HORLBECK_Files', re_run = False):
+    '''
     
+    Calculates Horlbeck score. Score files will created at the designated store location and save directory. 
+
+    **Params**:
+    * curr_counts: Counts to calculate scores to.)
+    * curr_study: String, name of study to analyze data for.
+    * curr_cl: String, name of cell line to analyze data for.
+    * store_loc: String: Directory to store the MAGeCK files to. (Default: current working directory)
+    * save_dir: String: Folder name to store the MAGeCK files to. (Default: 'Horlbeck_Files')
+    * do_preprocessing: Boolean. Run Horlbeck preprocessing (Default: True)
+    * re_run: Boolean. Recreate and rerun the results instead of loading for subsequent analyses (Default: False)
+
+    **Returns**:
+
+    * horlbeck_res: A dict that contains a pandas dataframe for Horlbeck Score.
+
+    '''
     print('Running horlbeck score...')
     
     ######### preprocessing
@@ -1005,7 +1088,18 @@ def run_horlbeck_score(curr_counts, curr_study, curr_cl, do_preprocessing = True
     
     return(results)
 
-def run_median_scores(curr_counts, full_normalization = False):
+def run_median_scores(curr_counts):
+    '''
+    Calculates Median B/NB Scores.
+
+    **Params**:
+
+    * curr_counts: Counts to calculate scores to.
+
+    **Returns**:
+
+    * median_res: A dictionary of two pandas dataframes: Median-B and Median-NB.
+    '''
 
     # for standard error
     median_SE_constant = 1.25
@@ -1031,24 +1125,14 @@ def run_median_scores(curr_counts, full_normalization = False):
     t_end_comb = t_end_comb.loc[overlapping_sgRNAs,:]
     curr_counts = curr_counts.loc[overlapping_sgRNAs,:]
         
-    # normalize to the median of the all time points
-    if full_normalization:
-        print('Full normalization...')
-        normalization_value = np.median(pd.concat([t_0_comb, t_end_comb], axis = 1).sum(axis = 0))
+    for subset in set(curr_counts['target_type']):
+        idx = curr_counts.loc[curr_counts['target_type'] == subset,:].index
 
-        t_0_comb = normalize_counts(t_0_comb, set_normalization = normalization_value)
-        t_end_comb = normalize_counts(t_end_comb, set_normalization = normalization_value)
-        
-    else:
-        print('Not full normalization...')
-        for subset in set(curr_counts['target_type']):
-            idx = curr_counts.loc[curr_counts['target_type'] == subset,:].index
+        # normalize to the median of the all time points
+        normalization_value = np.median(pd.concat([t_0_comb.loc[idx,:], t_end_comb.loc[idx,:]], axis = 1).sum(axis = 0))
 
-            # normalize to the median of the all time points
-            normalization_value = np.median(pd.concat([t_0_comb.loc[idx,:], t_end_comb.loc[idx,:]], axis = 1).sum(axis = 0))
-
-            t_0_comb.loc[idx,:] = normalize_counts(t_0_comb.loc[idx,:], set_normalization = normalization_value)
-            t_end_comb.loc[idx,:] = normalize_counts(t_end_comb.loc[idx,:], set_normalization = normalization_value)
+        t_0_comb.loc[idx,:] = normalize_counts(t_0_comb.loc[idx,:], set_normalization = normalization_value)
+        t_end_comb.loc[idx,:] = normalize_counts(t_end_comb.loc[idx,:], set_normalization = normalization_value)
 
 
     
@@ -1215,7 +1299,22 @@ def run_median_scores(curr_counts, full_normalization = False):
     # return computed scores
     return(results)
 
-def run_sgrna_scores(curr_counts, full_normalization = False):
+def run_sgrna_scores(curr_counts):
+    '''
+    Calculates sgRNA Derived N/NB scores.
+
+    ```
+    sgRNA_res = SLKB.run_sgrna_scores(curr_counts)
+    ```
+
+    **Params**:
+
+    * curr_counts: Counts to calculate scores to.
+
+    **Returns**:
+
+    * sgRNA_res: A dictionary of two pandas dataframes: sgRNA_derived_B and sgRNA_derived_NB. 
+    '''
         
     # for standard error
     median_SE_constant = 1.25
@@ -1241,27 +1340,15 @@ def run_sgrna_scores(curr_counts, full_normalization = False):
     t_end_comb = t_end_comb.loc[overlapping_sgRNAs,:]
     curr_counts = curr_counts.loc[overlapping_sgRNAs,:]
     
-    if full_normalization:
-        print('Full normalization...')
-        
+    for subset in set(curr_counts['target_type']):
+        idx = curr_counts.loc[curr_counts['target_type'] == subset,:].index
+
         # normalize to the median of the all time points
-        normalization_value = np.median(pd.concat([t_0_comb, t_end_comb], axis = 1).sum(axis = 0))
+        normalization_value = np.median(pd.concat([t_0_comb.loc[idx,:], t_end_comb.loc[idx,:]], axis = 1).sum(axis = 0))
 
-        t_0_comb = normalize_counts(t_0_comb, set_normalization = normalization_value)
-        t_end_comb = normalize_counts(t_end_comb, set_normalization = normalization_value)
-        
-    else:
-        print('Not full normalization...')
-    
-        for subset in set(curr_counts['target_type']):
-            idx = curr_counts.loc[curr_counts['target_type'] == subset,:].index
+        t_0_comb.loc[idx,:] = normalize_counts(t_0_comb.loc[idx,:], set_normalization = normalization_value)
+        t_end_comb.loc[idx,:] = normalize_counts(t_end_comb.loc[idx,:], set_normalization = normalization_value)
 
-            # normalize to the median of the all time points
-            normalization_value = np.median(pd.concat([t_0_comb.loc[idx,:], t_end_comb.loc[idx,:]], axis = 1).sum(axis = 0))
-
-            t_0_comb.loc[idx,:] = normalize_counts(t_0_comb.loc[idx,:], set_normalization = normalization_value)
-            t_end_comb.loc[idx,:] = normalize_counts(t_end_comb.loc[idx,:], set_normalization = normalization_value)
-    
     # if mismatch, average
     if t_0_comb.shape[1] != t_end_comb.shape[1]:
         print("Mismatch times, averaging...")
@@ -1470,7 +1557,24 @@ def run_sgrna_scores(curr_counts, full_normalization = False):
 
 
 def run_mageck_score(curr_counts, curr_study, curr_cl, store_loc = os.getcwd(), save_dir = 'MAGECK_Files', command_line_params = [], re_run = False):
+    '''
 
+    Calculates MAGeCK Score. Score files will created at the designated store location and save directory. 
+
+    **Params**:
+    * curr_counts: Counts to calculate scores to.)
+    * curr_study: String, name of study to analyze data for.
+    * curr_cl: String, name of cell line to analyze data for.
+    * store_loc: String: Directory to store the MAGeCK files to. (Default: current working directory)
+    * save_dir: String: Folder name to store the MAGeCK files to. (Default: 'MAGECK_Files')
+    * command_line_params: Optional list to load programming environment(s) to be able to run mageck tool (i.e. loading path, activating python environment). 
+    * re_run: Boolean. Recreate and rerun the results instead of loading for subsequent analyses (Default: False)
+
+
+    **Returns**:
+
+    * mageck_res: A dict that contains a pandas dataframe for MAGeck Score.
+    '''
     print('Running mageck score...')
 
     # !no preprocessing!
@@ -1649,7 +1753,22 @@ def run_mageck_score(curr_counts, curr_study, curr_cl, store_loc = os.getcwd(), 
     return(results)
 
 def run_gemini_score(curr_counts, curr_study, curr_cl, store_loc = os.getcwd(), save_dir = 'GEMINI_Files', command_line_params = [], re_run = False):
+    '''
+    Calculates GEMINI Score. Score files will created at the designated store location and save directory. 
 
+    **Params**:
+    * curr_counts: Counts to calculate scores to.)
+    * curr_study: String, name of study to analyze data for.
+    * curr_cl: String, name of cell line to analyze data for.
+    * store_loc: String: Directory to store the MAGeCK files to. (Default: current working directory)
+    * save_dir: String: Folder name to store the MAGeCK files to. (Default: 'GEMINI_Files')
+    * command_line_params: Optional list to load programming environment(s) to be able to run GEMINI through R (i.e. loading path, activating R environment). 
+    * re_run: Boolean. Recreate and rerun the results instead of loading for subsequent analyses (Default: False)
+
+    **Returns**:
+
+    * gemini_res: A dict that contains a pandas dataframe for GEMINI Score.
+    '''
     print('Running gemini score...')
     
     # !no preprocessing!
@@ -1692,7 +1811,7 @@ def run_gemini_score(curr_counts, curr_study, curr_cl, store_loc = os.getcwd(), 
     fp.write("#!/bin/sh\n")
     for line in command_line_params:
         fp.write(line + '\n')
-    fp.write('Rscript --vanilla GEMINI.R --args ' + os.path.join(save_dir, curr_study, curr_cl) + '\n')
+    fp.write('Rscript --vanilla ' + os.path.join(PACKAGE_PATH, 'files', 'GEMINI.R') + ' --args ' + os.path.join(save_dir, curr_study, curr_cl) + '\n')
     fp.close()
 
     # set chmod
@@ -1805,6 +1924,26 @@ def add_table_to_db(curr_counts, curr_results, table_name, engine_link):
 
 
 def check_if_added_to_table(curr_counts, table_name, engine_link):
+    '''
+        
+    If running the scoring methods multiple times, the method may be useful in skipping over the computation if there are gene pair records already in the database.
+
+    *Params**:
+
+    * curr_counts: Counts to calculate the scores to.
+    * score_name: Table to insert the scores to. Must be any of the 7 scoring table names:
+        * HORLBECK_SCORE
+        * MEDIAN_B_SCORE
+        * MEDIAN_NB_SCORE
+        * GEMINI_SCORE
+        * MAGECK_SCORE
+        * SGRA_DERIVED_B_SCORE
+        * SGRA_DERIVED_NB_SCORE
+
+    **Returns**:
+
+    * Boolean. True if records are inserted into the DB, False otherwise.
+    '''
     print('Checking if score already computed: ' + table_name)
     
     # get available results
@@ -1835,7 +1974,30 @@ def check_if_added_to_table(curr_counts, table_name, engine_link):
 ###### Score Query Functions
 
 def query_result_table(curr_counts, table_name, curr_study, curr_cl, engine_link):
+    '''
     
+    Obtain SL Scores from the specified scoring table.
+
+    **Params**:
+
+    * curr_counts: Counts to obtain the scores from.
+    * table_name: Must be any of the 7 scoring table names:
+        * HORLBECK_SCORE
+        * MEDIAN_B_SCORE
+        * MEDIAN_NB_SCORE
+        * GEMINI_SCORE
+        * MAGECK_SCORE
+        * SGRA_DERIVED_B_SCORE
+        * SGRA_DERIVED_NB_SCORE
+    * curr_study: String, name of the study to obtain the results for.
+    * curr_cl: String, name of the cell line to obtain the results for.
+    * engine_link: SQLAlchemy connection for the database.
+
+    **Returns**:
+
+    * result: A pandas dataframe of the inserted results. Includes annotations for gene pair, study origin, and cell line origin.
+
+    '''
     print('Accessing table: ' + table_name)
     
     # get available results

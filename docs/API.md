@@ -2,13 +2,18 @@
 
 ## File Formats
 
-For more details, follow the pipeline.
+A demo data is available for loading. Additional details can be found in the [pipeline](pipeline.md).
 
-### Sequence File
+```
+demo_data = SLKB.load_demo_data()
+```
+**Params**:
 
-### Counts File
+* None.
 
-### Score File
+**Returns**:
+
+* demo_data. A list of 3 items: sequence file, counts, fle, and score file.
 
 ## Functions For Data Insertion to KB
 
@@ -17,7 +22,7 @@ For more details, follow the pipeline.
 Creates a local sqlite3 database, using SLKB schema.
 
 ```
-db_engine = create_SLKB(location = os.getcwd(), name = 'myCDKO_db')
+db_engine = SLKB.create_SLKB(location = os.getcwd(), name = 'myCDKO_db')
 ```
 
 **Params**:
@@ -36,7 +41,7 @@ db_engine = create_SLKB(location = os.getcwd(), name = 'myCDKO_db')
 Prepares the counts, scores, and sequences files for insertion into the DB.
 
 ```
-db_inserts = prepare_study_for_export(score_ref, sequence_ref = None, counts_ref = None, study_controls = None, study_conditions = None, can_control_be_substring = True, remove_unrelated_counts = False)
+db_inserts = SLKB.prepare_study_for_export(score_ref, sequence_ref = None, counts_ref = None, study_controls = None, study_conditions = None, can_control_be_substring = True, remove_unrelated_counts = False)
 ```
 
 **Params**:
@@ -61,7 +66,7 @@ db_inserts = prepare_study_for_export(score_ref, sequence_ref = None, counts_ref
 Inserts the counts to the designated DB.
 
 ```
-insert_study_to_db(SLKB_engine, db_inserts)
+SLKB.insert_study_to_db(SLKB_engine, db_inserts)
 ```
 
 **Params**:
@@ -75,21 +80,113 @@ insert_study_to_db(SLKB_engine, db_inserts)
 
 <hr>
 
-## Functions for Scoring
+### Scoring Functions
 
-command_line_params = []
+#### Median-B/NB Score
 
-### ...
+Calculates Median B/NB Scores.
+
+```
+median_res = SLKB.run_median_scores(curr_counts)
+```
+
+**Params**:
+
+* curr_counts: Counts to calculate scores to.
+
+**Returns**:
+
+* median_res: A dictionary of two pandas dataframes: Median-B and Median-NB.
+
+#### sgRNA-Derived-B/NB Score
+
+Calculates sgRNA Derived N/NB scores.
+
+```
+sgRNA_res = SLKB.run_sgrna_scores(curr_counts)
+```
+
+**Params**:
+
+* curr_counts: Counts to calculate scores to.
+
+**Returns**:
+
+* sgRNA_res: A dictionary of two pandas dataframes: sgRNA_derived_B and sgRNA_derived_NB. 
+
+#### MAGeCK Score
+
+Calculates MAGeCK Score. Score files will created at the designated store location and save directory. 
+
+```
+mageck_res = SLKB.run_mageck_score(curr_counts.copy(), curr_study, curr_cl, store_loc = os.getcwd(), save_dir = 'MAGECK_Files', command_line_params = [],re_run = False)   
+```
+
+**Params**:
+* curr_counts: Counts to calculate scores to.)
+* curr_study: String, name of study to analyze data for.
+* curr_cl: String, name of cell line to analyze data for.
+* store_loc: String: Directory to store the MAGeCK files to. (Default: current working directory)
+* save_dir: String: Folder name to store the MAGeCK files to. (Default: 'MAGECK_Files')
+* command_line_params: Optional list to load programming environment(s) to be able to run mageck tool (i.e. loading path, activating python environment). 
+* re_run: Boolean. Recreate and rerun the results instead of loading for subsequent analyses (Default: False)
+
+
+**Returns**:
+
+* mageck_res: A dict that contains a pandas dataframe for MAGeCK Score.
+
+#### Horlbeck Score
+
+Calculates Horlbeck score. Score files will created at the designated store location and save directory. 
+```
+horlbeck_res = SLKB.run_horlbeck_score(curr_counts.copy(), curr_study = curr_study, curr_cl = curr_cl, store_loc = os.getcwd(), save_dir = 'HORLBECK_Files', do_preprocessing = True, re_run = False)
+```
+
+**Params**:
+* curr_counts: Counts to calculate scores to.)
+* curr_study: String, name of study to analyze data for.
+* curr_cl: String, name of cell line to analyze data for.
+* store_loc: String: Directory to store the MAGeCK files to. (Default: current working directory)
+* save_dir: String: Folder name to store the MAGeCK files to. (Default: 'Horlbeck_Files')
+* do_preprocessing: Boolean. Run Horlbeck preprocessing (Default: True)
+* re_run: Boolean. Recreate and rerun the results instead of loading for subsequent analyses (Default: False)
+
+**Returns**:
+
+* horlbeck_res: A dict that contains a pandas dataframe for Horlbeck Score.
+
+#### GEMINI Score
+
+Calculates GEMINI Score. Score files will created at the designated store location and save directory. 
+
+```
+gemini_res = run_gemini_score(curr_counts.copy(), curr_study = curr_study, curr_cl = curr_cl, store_loc = os.getcwd(), save_dir = 'GEMINI_Files', command_line_params = cmd_params, re_run = False)
+```
+
+**Params**:
+* curr_counts: Counts to calculate scores to.)
+* curr_study: String, name of study to analyze data for.
+* curr_cl: String, name of cell line to analyze data for.
+* store_loc: String: Directory to store the MAGeCK files to. (Default: current working directory)
+* save_dir: String: Folder name to store the MAGeCK files to. (Default: 'GEMINI_Files')
+* command_line_params: Optional list to load programming environment(s) to be able to run GEMINI through R (i.e. loading path, activating R environment). 
+* re_run: Boolean. Recreate and rerun the results instead of loading for subsequent analyses (Default: False)
+
+**Returns**:
+
+* gemini_res: A dict that contains a pandas dataframe for GEMINI Score.
+
 
 ### check_if_added_to_table
 
 If running the scoring methods multiple times, the method may be useful in skipping over the computation if there are gene pair records already in the database.
 
 ```
-check_if_added_to_table(curr_counts, score_name, SLKB_engine)
+SLKB.check_if_added_to_table(curr_counts, score_name, SLKB_engine)
 ```
 
-*Params**:
+**Params**:
 
 * curr_counts: Counts to calculate the scores to.
 * score_name: Table to insert the scores to. Must be any of the 7 scoring table names:
@@ -105,22 +202,45 @@ check_if_added_to_table(curr_counts, score_name, SLKB_engine)
 
 * Boolean. True if records are inserted into the DB, False otherwise.
 
+### query_results_table
+
+Obtain SL Scores from the specified scoring table.
+
+```
+result = SLKB.query_result_table(curr_counts, table_name, curr_study, curr_cl, engine_link)
+```
+
+**Params**:
+
+* curr_counts: Counts to obtain the scores from.
+* table_name: Must be any of the 7 scoring table names:
+    * HORLBECK_SCORE
+    * MEDIAN_B_SCORE
+    * MEDIAN_NB_SCORE
+    * GEMINI_SCORE
+    * MAGECK_SCORE
+    * SGRA_DERIVED_B_SCORE
+    * SGRA_DERIVED_NB_SCORE
+* curr_study: String, name of the study to obtain the results for.
+* curr_cl: String, name of the cell line to obtain the results for.
+* engine_link: SQLAlchemy connection for the database.
+
+**Returns**:
+
+* result: A pandas dataframe of the inserted results. Includes annotations for gene pair, study origin, and cell line origin.
+
 **Helper Functions**
 
 Helper functions are used across different functions within SLKB. You may use them as is or modify them to suit your needs.
-
-## Helper Python Functions
-
-###
 
 ## Helper R Functions
 
 SLKB's helper functions are also located within the R environment. Functions for majority vote calculation, network visualization, and venn diagram creatios are located under the website's GitHub link. They are not included within the python package. 
 
-To have access to those methods, you need to load in the functions to your R environment either through the URL or download them seperately.
+To have access to those methods, you need to load in the functions to your R environment either through the URL or download them seperately through [SLKB web app](https://www.google.com)
 
 ```
-source('R_loc')
+source('/path/to/SLKB/repo/functions.R')
 ```
 
 ### create_venn_diagram
@@ -160,51 +280,5 @@ network <- create_SL_network(pair_file, color_base = None, target_genes = None, 
 **Returns**:
 
 * A visNetwork object
-
-
-**Additional Functions**
-
-The following two visualization functions are included in the package to allow the user to visualize their results quickly on the spot.
-
-### Dim_Red_Plot
-
-Creates a 2D plot of the data, displays it and returns it.
-
-```
-figure = DGCyTOF.Dim_Red_Plot(name, data, labels, no_classes, class_names)
-```
-
-**Params**:
-
-* name: Name of the plot 
-* data: 2 dimensional embedding of data, for instance UMAP transformed data
-* no_classes: List of classes
-* class_names: List of class names
-
-**Returns**:
-
-* figure: Plt plot
-
-<hr>
-
-### Dim_Red_Plot_3d
-
-Creates a 3D plot of the data, displays it and returns it.
-
-```
-figure = DGCyTOF.Dim_Red_Plot_3d(data, labels, all_celltypes)
-```
-
-**Params**:
-
-* data: Low dimension embedding of data, for instance UMAP transformed data
-* labels: List of labels corresponding to each cell
-* all_celltypes: List of celltype names, where each celltype is in its respective label position
-
-**Returns**:
-
-* figure: Plt plot
-
-<hr>
 
 © Copyright 2023, The Ohio State University, College of Medicine, Biomedical Informatics
