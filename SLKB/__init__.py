@@ -20,14 +20,6 @@ from sqlalchemy import event
 import pkg_resources
 PACKAGE_PATH = pkg_resources.resource_filename('SLKB', '/')
 
-# to enable foreign keys constraint
-@event.listens_for(Engine, "connect")
-def set_sqlite_pragma(dbapi_connection, connection_record):
-    cursor = dbapi_connection.cursor()
-    cursor.execute("PRAGMA foreign_keys=ON")
-    cursor.close()
-
-
 def load_demo_data():
     '''
     A demo data is available for loading. Additional details can be found in the [pipeline](pipeline.md).
@@ -57,183 +49,35 @@ def check_repeated_constructs(x, index_loc):
     else:
         return(x[index_loc])
     
-def create_SLKB(location = os.getcwd(), name = 'myCDKO_db', disable_foreign_keys = True):
+def create_SLKB(engine = 'sqlite:///SLKB_sqlite3', db_type = 'sqlite3'):
     '''
-    Creates a local sqlite3 database, using SLKB schema.
+    Creates a sqlite3 or mysql database, using SLKB schema.
 
     **Params**:
 
-    * location: Location to store the database
-    * name: Name of the database
+    * engine: sqlalchemy url object. (Default: sqlite:///SLKB_sqlite3)
+    * db_type: Type of database to use schema for, currently available in mysql and sqlite3. (Default: sqlite3)
 
     **Returns**:
 
-    * db_engine: Database engine link with sqlite3.
+    * None.
     '''
-    # create connection
-    conn = sqlite3.connect(name) 
+    schema_loc = os.path.join(PACKAGE_PATH, 'files')
+    if db_type == 'sqlite3':
+        schema_loc = os.path.join(schema_loc, 'SLKB_sqlite3_schema.sql')
+    elif db_type == 'mysql':
+        schema_loc = os.path.join(schema_loc, 'SLKB_mysql_schema.sql')
+    else:
+        print('Unavailable. Please choose either sqlite3 or mysql.')
 
-    # get cursor
-    c = conn.cursor()
+    # read the schema
+    with open(schema_loc) as f:
+        command = f.read()
 
-    # turn on foreign keys
-    c.execute("PRAGMA foreign_keys=ON")
-
-    ## 1. CDKO Experiment Design
-    c.execute('''
-            CREATE TABLE IF NOT EXISTS CDKO_EXPERIMENT_DESIGN
-            ([sgRNA_id] INTEGER, 
-            [sgRNA_guide_name] TEXT NOT NULL,
-            [sgRNA_guide_seq] TEXT NOT NULL,
-            [sgRNA_target_name] TEXT NOT NULL,
-            [study_origin] TEXT NOT NULL,
-            PRIMARY KEY (sgRNA_id)
-            )
-            ''')
-
-    conn.commit()
-
-    ## 2. CDKO sgRNA counts
-    c.execute('''
-          CREATE TABLE IF NOT EXISTS CDKO_SGRNA_COUNTS
-          ([sgRNA_pair_id] INTEGER, 
-          [guide_1_id] INTEGER,
-          [guide_2_id] INTEGER,
-          [gene_pair_id] INTEGER,
-          [gene_pair_orientation] TEXT,
-          [T0_counts] TEXT,
-          [T0_replicate_names] TEXT,
-          [TEnd_counts] TEXT,
-          [TEnd_replicate_names] TEXT,
-          [target_type] TEXT,
-          [study_origin] TEXT NOT NULL,
-          [cell_line_origin] TEXT NOT NULL,
-          PRIMARY KEY (sgRNA_pair_id),
-          FOREIGN KEY(guide_1_id) REFERENCES CDKO_EXPERIMENT_DESIGN(sgRNA_id),
-          FOREIGN KEY(guide_2_id) REFERENCES CDKO_EXPERIMENT_DESIGN(sgRNA_id)
-          
-          )
-          ''')
-
-    conn.commit()
-
-    ## 3. CDKO Original SL Results
-    c.execute('''
-          CREATE TABLE IF NOT EXISTS CDKO_ORIGINAL_SL_RESULTS
-          ([id] INTEGER,
-          [gene_pair_id] INTEGER, 
-          [gene_pair] TEXT NOT NULL,
-          [study_origin] TEXT NOT NULL,
-          [cell_line_origin] TEXT NOT NULL,
-          [gene_1] TEXT NOT NULL,
-          [gene_2] TEXT NOT NULL,
-          [SL_or_not] TEXT NOT NULL,
-          [SL_score] REAL,
-          [statistical_score] REAL,
-          [SL_score_cutoff] REAL,
-          [statistical_score_cutoff] REAL,
-          PRIMARY KEY (id)
-          )
-          ''')
-
-    conn.commit()
-
-    ## Horlbeck Score
-    c.execute('''
-          CREATE TABLE IF NOT EXISTS HORLBECK_SCORE
-          ([id] INTEGER,
-          [gene_pair_id] INTEGER, 
-          [SL_score] REAL,
-          [standard_error] REAL,
-          PRIMARY KEY (id)
-          )
-          ''')
-    conn.commit()
-
-    ## Median-B Score
-    c.execute('''
-          CREATE TABLE IF NOT EXISTS MEDIAN_B_SCORE
-          ([id] INTEGER,
-          [gene_pair_id] INTEGER, 
-          [SL_score] REAL,
-          [standard_error] REAL,
-          [Z_SL_score] REAL,
-          PRIMARY KEY (id)
-          )
-          ''')
-
-    conn.commit()
-
-    ## Median-NB Score
-    c.execute('''
-          CREATE TABLE IF NOT EXISTS MEDIAN_NB_SCORE
-          ([id] INTEGER,
-          [gene_pair_id] INTEGER, 
-          [SL_score] REAL,
-          [standard_error] REAL,
-          [Z_SL_score] REAL,
-          PRIMARY KEY (id)
-          )
-          ''')
-
-    conn.commit()
-
-    ## GEMINI Score
-    c.execute('''
-          CREATE TABLE IF NOT EXISTS GEMINI_SCORE
-          ([id] INTEGER,
-          [gene_pair_id] INTEGER, 
-          [SL_score_Strong] REAL,
-          [SL_score_SensitiveLethality] REAL,
-          [SL_score_SensitiveRecovery] REAL,
-          PRIMARY KEY (id)
-          )
-          ''')
-    conn.commit()
-
-    ## MAGeCK Score
-    c.execute('''
-          CREATE TABLE IF NOT EXISTS MAGECK_SCORE
-          ([id] INTEGER,
-          [gene_pair_id] INTEGER, 
-          [SL_score] REAL,
-          [standard_error] REAL,
-          [Z_SL_score] REAL,
-          PRIMARY KEY (id)
-          )
-          ''')
-    conn.commit()
-
-    ## sgRNA-Derived B Score
-    c.execute('''
-          CREATE TABLE IF NOT EXISTS SGRA_DERIVED_B_SCORE
-          ([id] INTEGER,
-          [gene_pair_id] INTEGER, 
-          [SL_score] REAL,
-          PRIMARY KEY (id)
-          )
-          ''')
-    conn.commit()
-
-    ## sgRNA-Derived NB Score
-    c.execute('''
-          CREATE TABLE IF NOT EXISTS SGRA_DERIVED_NB_SCORE
-          ([id] INTEGER,
-          [gene_pair_id] INTEGER, 
-          [SL_score] REAL,
-          PRIMARY KEY (id)
-          )
-          ''')
-    conn.commit()
-
-    # add the foreign keys
-    if not disable_foreign_keys:
-        pass
-
-    ## Save changes
-    conn.close()
-
-    return('sqlite:///' + name)
+    # execute
+    with engine.begin() as transaction:
+        for com in command.split(';'):
+            transaction.execute(sqlalchemy.text(com)) 
 
 
 ###### Data Preperation Function
@@ -540,13 +384,13 @@ def insert_study_to_db(engine_link, db_inserts):
 
     '''
     # first, get the metadata
-    db_metadata = sqlalchemy.MetaData(bind=engine_link)
-    db_metadata.reflect(engine_link)
+    db_metadata = sqlalchemy.MetaData()
+    db_metadata.reflect(bind=engine_link)
 
     # access the tables
-    sequence_table = db_metadata.tables['CDKO_EXPERIMENT_DESIGN']
-    counts_table = db_metadata.tables['CDKO_SGRNA_COUNTS']
-    scores_table = db_metadata.tables['CDKO_ORIGINAL_SL_RESULTS']
+    sequence_table = db_metadata.tables['cdko_experiment_design']
+    counts_table = db_metadata.tables['cdko_sgrna_counts']
+    scores_table = db_metadata.tables['cdko_original_sl_results']
 
     # then, start the session
     engine_session = sessionmaker(bind=engine_link)
@@ -651,7 +495,7 @@ def insert_study_to_db(engine_link, db_inserts):
 
         if sequence_insert is not None:
             sequence_insert = sequence_insert.loc[:,['sgRNA_guide_name', 'sgRNA_guide_seq', 'sgRNA_target_name', 'study_origin', 'sgRNA_id']]
-            sequence_insert.to_sql(name = 'CDKO_EXPERIMENT_DESIGN', con = transaction, if_exists = 'append', index = False, index_label = 'sgRNA_id')
+            sequence_insert.to_sql(name = 'cdko_experiment_design', con = transaction, if_exists = 'append', index = False, index_label = 'sgRNA_id')
 
             print('Done sequence')
 
@@ -663,13 +507,13 @@ def insert_study_to_db(engine_link, db_inserts):
                                                                    'FK_guide_2_id': 'guide_2_id',
                                                                    'gene_pair_id_all': 'gene_pair_id'})
 
-            counts_insert.to_sql(name = 'CDKO_SGRNA_COUNTS', con = transaction, if_exists = 'append', index = False, index_label = 'sgRNA_pair_id')
+            counts_insert.to_sql(name = 'cdko_sgrna_counts', con = transaction, if_exists = 'append', index = False, index_label = 'sgRNA_pair_id')
 
             print('Done counts')
 
         # finally, insert scores
         score_insert = score_insert.loc[:, ['gene_1', 'gene_2', 'study_origin', 'cell_line_origin', 'SL_score', 'SL_score_cutoff', 'statistical_score', 'statistical_score_cutoff', 'gene_pair', 'SL_or_not', 'gene_pair_id', 'id']]
-        score_insert.to_sql(name = 'CDKO_ORIGINAL_SL_RESULTS', con = transaction, if_exists = 'append', index = False, index_label = 'id')
+        score_insert.to_sql(name = 'cdko_original_sl_results', con = transaction, if_exists = 'append', index = False, index_label = 'id')
 
         print('Done score')
 
@@ -1082,19 +926,21 @@ def run_horlbeck_score(curr_counts, curr_study, curr_cl, do_preprocessing = True
     results = {}
     results['HORLBECK_SCORE'] = horlbeck_results
 
-    
-    
-    
-    
     return(results)
 
-def run_median_scores(curr_counts):
+def run_median_scores(curr_counts, curr_study, curr_cl, full_normalization = False, re_run = False, store_loc = os.getcwd(), save_dir = 'MEDIAN_Files'):
     '''
     Calculates Median B/NB Scores.
 
     **Params**:
 
-    * curr_counts: Counts to calculate scores to.
+    * curr_counts: Counts to calculate scores to.)
+    * curr_study: String, name of study to analyze data for.
+    * curr_cl: String, name of cell line to analyze data for.
+    * full_normalization: Whether to normalize counts across the whole sample or according to target type (Default: False)
+    * re_run: Boolean. Recreate and rerun the results instead of loading for subsequent analyses (Default: False)
+    * store_loc: String: Directory to store the MAGeCK files to. (Default: current working directory)
+    * save_dir: String: Folder name to store the MAGeCK files to. (Default: 'MEDIAN_Files')
 
     **Returns**:
 
@@ -1106,164 +952,143 @@ def run_median_scores(curr_counts):
     
     print('Running median scores...')
     
-    ######### preprocessing
-    t_0_comb, t_end_comb = get_raw_counts(curr_counts)
+    # get save location
+    save_loc = os.path.join(store_loc, save_dir, curr_study, curr_cl)
+    os.makedirs(save_loc, exist_ok = True)
+
     
-    # filter counts, only at T0
-    t_0_comb = filter_counts(t_0_comb, filtering_counts = 35)
-    print(' '.join(['Filtered a total of', str(t_end_comb.shape[0] - t_0_comb.shape[0]), "out of", str(t_end_comb.shape[0]), "sgRNAs."]))
-    print("\n---\n")
-        
-    # add pseudocount of 10 after filtering
-    t_0_comb = t_0_comb + 10
-    t_end_comb = t_end_comb + 10
+    if os.path.exists(os.path.join(save_loc, "median_results.p")) and (not re_run):
+        print('Loading final results!')
+        #results =  pd.read_pickle(os.path.join(save_loc, "median_results.p"))
+        with open(os.path.join(save_loc, "median_results.p"), 'rb') as handle:
+            results = pickle.load(handle)
+    else:
     
-    # some sgRNAs were filtered out
-    overlapping_sgRNAs = sorted(list(set(t_0_comb.index).intersection(set(t_end_comb.index))))
-    
-    t_0_comb = t_0_comb.loc[overlapping_sgRNAs,:]
-    t_end_comb = t_end_comb.loc[overlapping_sgRNAs,:]
-    curr_counts = curr_counts.loc[overlapping_sgRNAs,:]
-        
-    for subset in set(curr_counts['target_type']):
-        idx = curr_counts.loc[curr_counts['target_type'] == subset,:].index
+        ######### preprocessing
+        t_0_comb, t_end_comb = get_raw_counts(curr_counts)
+
+        # filter counts, only at T0
+        t_0_comb = filter_counts(t_0_comb, filtering_counts = 35)
+        print(' '.join(['Filtered a total of', str(t_end_comb.shape[0] - t_0_comb.shape[0]), "out of", str(t_end_comb.shape[0]), "sgRNAs."]))
+        print("\n---\n")
+
+        # add pseudocount of 10 after filtering
+        t_0_comb = t_0_comb + 10
+        t_end_comb = t_end_comb + 10
+
+        # some sgRNAs were filtered out
+        overlapping_sgRNAs = sorted(list(set(t_0_comb.index).intersection(set(t_end_comb.index))))
+
+        t_0_comb = t_0_comb.loc[overlapping_sgRNAs,:]
+        t_end_comb = t_end_comb.loc[overlapping_sgRNAs,:]
+        curr_counts = curr_counts.loc[overlapping_sgRNAs,:]
 
         # normalize to the median of the all time points
-        normalization_value = np.median(pd.concat([t_0_comb.loc[idx,:], t_end_comb.loc[idx,:]], axis = 1).sum(axis = 0))
+        if full_normalization:
+            print('Full normalization...')
+            normalization_value = np.median(pd.concat([t_0_comb, t_end_comb], axis = 1).sum(axis = 0))
 
-        t_0_comb.loc[idx,:] = normalize_counts(t_0_comb.loc[idx,:], set_normalization = normalization_value)
-        t_end_comb.loc[idx,:] = normalize_counts(t_end_comb.loc[idx,:], set_normalization = normalization_value)
+            t_0_comb = normalize_counts(t_0_comb, set_normalization = normalization_value)
+            t_end_comb = normalize_counts(t_end_comb, set_normalization = normalization_value)
+
+        else:
+            print('Not full normalization...')
+            for subset in set(curr_counts['target_type']):
+                idx = curr_counts.loc[curr_counts['target_type'] == subset,:].index
+
+                # normalize to the median of the all time points
+                normalization_value = np.median(pd.concat([t_0_comb.loc[idx,:], t_end_comb.loc[idx,:]], axis = 1).sum(axis = 0))
+
+                t_0_comb.loc[idx,:] = normalize_counts(t_0_comb.loc[idx,:], set_normalization = normalization_value)
+                t_end_comb.loc[idx,:] = normalize_counts(t_end_comb.loc[idx,:], set_normalization = normalization_value)
 
 
-    
-    # get median of counts 
-    t_0_comb = t_0_comb.apply(lambda x: np.median(x), axis = 1)
-    t_end_comb = t_end_comb.apply(lambda x: np.median(x), axis = 1)
 
-    # get LFC
-    FC = np.log2(t_end_comb) - np.log2(t_0_comb)
-    
-    # set FC
-    curr_counts['FC'] = FC
-    
-    # add sorted targets
-    sorted_gene_pairs, sorted_gene_guides = sort_pairs_and_guides(curr_counts.copy())
-    curr_counts['sgRNA_pair'] = sorted_gene_guides
-    curr_counts['gene_pair'] = sorted_gene_pairs
-    
-    ######### /preprocessing
-    
-    # store results
-    results = {}
-    results['MEDIAN_B_SCORE'] = None
-    results['MEDIAN_NB_SCORE'] = None
-    
-    ######### scoring
-    
-    # get the three target categories
-    single = curr_counts.loc[curr_counts['target_type'] == 'Single']
-    dual = curr_counts.loc[curr_counts['target_type'] == 'Dual']
-    control = curr_counts.loc[curr_counts['target_type'] == 'Control']
-    
-    print('Available singles: ' + str(single.shape[0]))
-    print('Available duals: ' + str(dual.shape[0]))
-    print('Available control: ' + str(control.shape[0]))
-    
-    temp_repeat = single.copy()
-    temp_repeat['sgRNA_guide_name_g1'] = single["sgRNA_guide_name_g2"]
-    temp_repeat['sgRNA_target_name_g1'] = single["sgRNA_target_name_g2"]
-    temp_repeat['sgRNA_guide_name_g2'] = single["sgRNA_guide_name_g1"]
-    temp_repeat['sgRNA_target_name_g2'] = single["sgRNA_target_name_g1"]
-    
-    single_repeat = pd.concat([single, temp_repeat])
+        # get median of counts 
+        t_0_comb = t_0_comb.apply(lambda x: np.median(x), axis = 1)
+        t_end_comb = t_end_comb.apply(lambda x: np.median(x), axis = 1)
 
-    # get single sgRNA impact
-    EC_single = single_repeat.groupby("sgRNA_guide_name_g1")['FC'].apply(
-            lambda x: np.median(x))
-    
-    # get control sgRNA impact
-    EC_control = None
-    if control.shape[0] != 0:
+        # get LFC
+        FC = np.log2(t_end_comb) - np.log2(t_0_comb)
 
-        temp_repeat = control.copy()
-        temp_repeat['sgRNA_guide_name_g1'] = control["sgRNA_guide_name_g2"]
-        temp_repeat['sgRNA_guide_name_g2'] = control["sgRNA_guide_name_g1"]
+        # set FC
+        curr_counts['FC'] = FC
 
-        EC_control = pd.concat([control, temp_repeat]).groupby("sgRNA_guide_name_g1")['FC'].apply(
-            lambda x: np.median(x)
-        )
+        # add sorted targets
+        sorted_gene_pairs, sorted_gene_guides = sort_pairs_and_guides(curr_counts.copy())
+        curr_counts['sgRNA_pair'] = sorted_gene_guides
+        curr_counts['gene_pair'] = sorted_gene_pairs
 
-        EC_single = EC_single.drop(set(EC_control.index).intersection(set(EC_single.index)))
-    
-    # all available dual sgRNAs
-    all_pairs = set(dual['sgRNA_guide_name_g1']).union(set(dual['sgRNA_guide_name_g2']))
-    
-    # fill for empty
-    missing_pairs = np.array(list(all_pairs.difference(set(EC_single.index))))
+        ######### /preprocessing
 
-    print(' '.join(["Filtered single sgRNA count:", str(len(set(missing_pairs)))]))
-    
-    # add them as 0s
-    EC_single = pd.concat([EC_single, pd.Series(index = missing_pairs, data = np.zeros(len(missing_pairs)))])
-    
-    # get EC for each
-    EC_1 = EC_single[dual['sgRNA_guide_name_g1']]
-    EC_2 = EC_single[dual['sgRNA_guide_name_g2']]
-    
-    # calculate Impact Scores (sgRNA level)
+        # store results
+        results = {}
+        results['MEDIAN_B_SCORE'] = None
+        results['MEDIAN_NB_SCORE'] = None
 
-    dual['Median-NB-dual-IS'] = dual['FC'].values
-    dual['Median-NB-single-IS-Guide-1'] = EC_1.values
-    dual['Median-NB-single-IS-Guide-2'] = EC_2.values
-    dual['Median-NB-dual-SL-sgRNA'] = dual['FC'].values - EC_1.values - EC_2.values
-    
-    ## calculate SL scores (sgRNA)
-    gene_pair_SL = dual.groupby('gene_pair')['Median-NB-dual-IS'].apply(lambda x: np.median(x))
-    gene_pair_SE = dual.groupby('gene_pair')['Median-NB-dual-IS'].apply(lambda x: np.var(x) / np.size(x))
-    
-    ## calculate SL scores (gene)
-    gene_SL = single_repeat.groupby("sgRNA_target_name_g1")['FC'].apply(
-    lambda x: np.median(x))
-    gene_SE = single_repeat.groupby("sgRNA_target_name_g1")['FC'].apply(
-        lambda x: np.var(x) / np.size(x))
+        ######### scoring
 
-    genes_1 = np.array([i.split('|')[0] for i in gene_pair_SL.index])
-    genes_2 = np.array([i.split('|')[1] for i in gene_pair_SL.index])
+        # get the three target categories
+        single = curr_counts.loc[curr_counts['target_type'] == 'Single']
+        dual = curr_counts.loc[curr_counts['target_type'] == 'Dual']
+        control = curr_counts.loc[curr_counts['target_type'] == 'Control']
 
-    all_genes = set(genes_1).union(set(genes_2))
-    missing_genes = all_genes.difference(set(gene_SL.index))
-    print(' '.join(["Filtered gene count:", str(len(set(missing_genes)))]))
+        print('Available singles: ' + str(single.shape[0]))
+        print('Available duals: ' + str(dual.shape[0]))
+        print('Available control: ' + str(control.shape[0]))
 
-    # add them as 0s
-    gene_SL = pd.concat([gene_SL, pd.Series(index = missing_genes, data = np.zeros(len(missing_genes)))])
-    gene_SE = pd.concat([gene_SE, pd.Series(index = missing_genes, data = np.zeros(len(missing_genes)))])
+        temp_repeat = single.copy()
+        temp_repeat['sgRNA_guide_name_g1'] = single["sgRNA_guide_name_g2"]
+        temp_repeat['sgRNA_target_name_g1'] = single["sgRNA_target_name_g2"]
+        temp_repeat['sgRNA_guide_name_g2'] = single["sgRNA_guide_name_g1"]
+        temp_repeat['sgRNA_target_name_g2'] = single["sgRNA_target_name_g1"]
 
-    median_nb_SL = gene_pair_SL.values - gene_SL[genes_1].values - gene_SL[genes_2].values
-    median_nb_SE = np.sqrt(gene_pair_SE.values + gene_SE[genes_1].values + gene_SE[genes_2].values) * median_SE_constant
-    median_nb_Z = median_nb_SL/median_nb_SE
+        single_repeat = pd.concat([single, temp_repeat])
 
-    median_nb_results = pd.DataFrame(data = {'SL_score' : median_nb_SL,
-                                             'standard_error' : median_nb_SE,
-                                             'Z_SL_score' : median_nb_Z,
-                                             'Gene 1' : genes_1,
-                                             'Gene 2' : genes_2}, index = gene_pair_SL.index)
-    
-    results['MEDIAN_NB_SCORE'] = median_nb_results
-    
-    if EC_control is not None:
-        control_median = np.median(EC_control)
+        # get single sgRNA impact
+        EC_single = single_repeat.groupby("sgRNA_guide_name_g1")['FC'].apply(
+                lambda x: np.median(x))
 
-        dual['Median-B-dual-IS'] = dual['FC'].values - control_median
-        dual['Median-B-single-IS-Guide-1'] = EC_1.values - control_median
-        dual['Median-B-single-IS-Guide-2'] = EC_2.values - control_median
-        dual['Median-B-dual-SL-sgRNA'] = (dual['FC'].values - control_median) - (EC_1.values - control_median) - (EC_2.values - control_median)
+        # get control sgRNA impact
+        EC_control = None
+        if control.shape[0] != 0:
+
+            temp_repeat = control.copy()
+            temp_repeat['sgRNA_guide_name_g1'] = control["sgRNA_guide_name_g2"]
+            temp_repeat['sgRNA_guide_name_g2'] = control["sgRNA_guide_name_g1"]
+
+            EC_control = pd.concat([control, temp_repeat]).groupby("sgRNA_guide_name_g1")['FC'].apply(
+                lambda x: np.median(x)
+            )
+
+            EC_single = EC_single.drop(set(EC_control.index).intersection(set(EC_single.index)))
+
+        # all available dual sgRNAs
+        all_pairs = set(dual['sgRNA_guide_name_g1']).union(set(dual['sgRNA_guide_name_g2']))
+
+        # fill for empty
+        missing_pairs = np.array(list(all_pairs.difference(set(EC_single.index))))
+
+        print(' '.join(["Filtered single sgRNA count:", str(len(set(missing_pairs)))]))
+
+        # add them as 0s
+        EC_single = pd.concat([EC_single, pd.Series(index = missing_pairs, data = np.zeros(len(missing_pairs)))])
+
+        # get EC for each
+        EC_1 = EC_single[dual['sgRNA_guide_name_g1']]
+        EC_2 = EC_single[dual['sgRNA_guide_name_g2']]
+
+        # calculate Impact Scores (sgRNA level)
+
+        dual['Median-NB-dual-IS'] = dual['FC'].values
+        dual['Median-NB-single-IS-Guide-1'] = EC_1.values
+        dual['Median-NB-single-IS-Guide-2'] = EC_2.values
+        dual['Median-NB-dual-SL-sgRNA'] = dual['FC'].values - EC_1.values - EC_2.values
 
         ## calculate SL scores (sgRNA)
-        gene_pair_SL = dual.groupby('gene_pair')['Median-B-dual-IS'].apply(lambda x: np.median(x))
-        gene_pair_SE = dual.groupby('gene_pair')['Median-B-dual-IS'].apply(lambda x: np.var(x) / np.size(x))
+        gene_pair_SL = dual.groupby('gene_pair')['Median-NB-dual-IS'].apply(lambda x: np.median(x))
+        gene_pair_SE = dual.groupby('gene_pair')['Median-NB-dual-IS'].apply(lambda x: np.var(x) / np.size(x))
 
-        # remove controls first
-        single_repeat['FC'] = single_repeat['FC'] - control_median
         ## calculate SL scores (gene)
         gene_SL = single_repeat.groupby("sgRNA_target_name_g1")['FC'].apply(
         lambda x: np.median(x))
@@ -1281,17 +1106,64 @@ def run_median_scores(curr_counts):
         gene_SL = pd.concat([gene_SL, pd.Series(index = missing_genes, data = np.zeros(len(missing_genes)))])
         gene_SE = pd.concat([gene_SE, pd.Series(index = missing_genes, data = np.zeros(len(missing_genes)))])
 
-        median_b_SL = gene_pair_SL.values - gene_SL[genes_1].values - gene_SL[genes_2].values
-        median_b_SE = np.sqrt(gene_pair_SE.values + gene_SE[genes_1].values + gene_SE[genes_2].values) * median_SE_constant
-        median_b_Z = median_b_SL/median_b_SE
+        median_nb_SL = gene_pair_SL.values - gene_SL[genes_1].values - gene_SL[genes_2].values
+        median_nb_SE = np.sqrt(gene_pair_SE.values + gene_SE[genes_1].values + gene_SE[genes_2].values) * median_SE_constant
+        median_nb_Z = median_nb_SL/median_nb_SE
 
-        median_b_results = pd.DataFrame(data = {'SL_score' : median_b_SL,
-                                                 'standard_error' : median_b_SE,
-                                                 'Z_SL_score' : median_b_Z,
+        median_nb_results = pd.DataFrame(data = {'SL_score' : median_nb_SL,
+                                                 'standard_error' : median_nb_SE,
+                                                 'Z_SL_score' : median_nb_Z,
                                                  'Gene 1' : genes_1,
                                                  'Gene 2' : genes_2}, index = gene_pair_SL.index)
-        
-        results['MEDIAN_B_SCORE'] = median_b_results
+
+        results['MEDIAN_NB_SCORE'] = median_nb_results
+
+        if EC_control is not None:
+            control_median = np.median(EC_control)
+
+            dual['Median-B-dual-IS'] = dual['FC'].values - control_median
+            dual['Median-B-single-IS-Guide-1'] = EC_1.values - control_median
+            dual['Median-B-single-IS-Guide-2'] = EC_2.values - control_median
+            dual['Median-B-dual-SL-sgRNA'] = (dual['FC'].values - control_median) - (EC_1.values - control_median) - (EC_2.values - control_median)
+
+            ## calculate SL scores (sgRNA)
+            gene_pair_SL = dual.groupby('gene_pair')['Median-B-dual-IS'].apply(lambda x: np.median(x))
+            gene_pair_SE = dual.groupby('gene_pair')['Median-B-dual-IS'].apply(lambda x: np.var(x) / np.size(x))
+
+            # remove controls first
+            single_repeat['FC'] = single_repeat['FC'] - control_median
+            ## calculate SL scores (gene)
+            gene_SL = single_repeat.groupby("sgRNA_target_name_g1")['FC'].apply(
+            lambda x: np.median(x))
+            gene_SE = single_repeat.groupby("sgRNA_target_name_g1")['FC'].apply(
+                lambda x: np.var(x) / np.size(x))
+
+            genes_1 = np.array([i.split('|')[0] for i in gene_pair_SL.index])
+            genes_2 = np.array([i.split('|')[1] for i in gene_pair_SL.index])
+
+            all_genes = set(genes_1).union(set(genes_2))
+            missing_genes = all_genes.difference(set(gene_SL.index))
+            print(' '.join(["Filtered gene count:", str(len(set(missing_genes)))]))
+
+            # add them as 0s
+            gene_SL = pd.concat([gene_SL, pd.Series(index = missing_genes, data = np.zeros(len(missing_genes)))])
+            gene_SE = pd.concat([gene_SE, pd.Series(index = missing_genes, data = np.zeros(len(missing_genes)))])
+
+            median_b_SL = gene_pair_SL.values - gene_SL[genes_1].values - gene_SL[genes_2].values
+            median_b_SE = np.sqrt(gene_pair_SE.values + gene_SE[genes_1].values + gene_SE[genes_2].values) * median_SE_constant
+            median_b_Z = median_b_SL/median_b_SE
+
+            median_b_results = pd.DataFrame(data = {'SL_score' : median_b_SL,
+                                                     'standard_error' : median_b_SE,
+                                                     'Z_SL_score' : median_b_Z,
+                                                     'Gene 1' : genes_1,
+                                                     'Gene 2' : genes_2}, index = gene_pair_SL.index)
+
+            results['MEDIAN_B_SCORE'] = median_b_results
+            
+        # save for easy loading
+        with open(os.path.join(save_loc, "median_results.p"), 'wb') as handle:
+            pickle.dump(results, handle, protocol=pickle.HIGHEST_PROTOCOL)
     
     ######### /scoring
     
@@ -1299,169 +1171,125 @@ def run_median_scores(curr_counts):
     # return computed scores
     return(results)
 
-def run_sgrna_scores(curr_counts):
+def run_sgrna_scores(curr_counts, curr_study, curr_cl, full_normalization = False, re_run = False, store_loc = os.getcwd(), save_dir = 'sgRNA-DERIVED_Files'):
     '''
     Calculates sgRNA Derived N/NB scores.
 
-    ```
-    sgRNA_res = SLKB.run_sgrna_scores(curr_counts)
-    ```
-
     **Params**:
 
-    * curr_counts: Counts to calculate scores to.
+    * curr_counts: Counts to calculate scores to.)
+    * curr_study: String, name of study to analyze data for.
+    * curr_cl: String, name of cell line to analyze data for.
+    * full_normalization: Whether to normalize counts across the whole sample or according to target type (Default: False)
+    * re_run: Boolean. Recreate and rerun the results instead of loading for subsequent analyses (Default: False)
+    * store_loc: String: Directory to store the MAGeCK files to. (Default: current working directory)
+    * save_dir: String: Folder name to store the MAGeCK files to. (Default: 'sgRNA-DERIVED_Files')
+
 
     **Returns**:
 
     * sgRNA_res: A dictionary of two pandas dataframes: sgRNA_derived_B and sgRNA_derived_NB. 
     '''
-        
     # for standard error
     median_SE_constant = 1.25
 
     print('Running sgrna derived score...')
-
-    ######### preprocessing
-    t_0_comb, t_end_comb = get_raw_counts(curr_counts)
     
-    # filter counts, only at T0
-    t_0_comb = filter_counts(t_0_comb, filtering_counts = 35)
-    print(' '.join(['Filtered a total of', str(t_end_comb.shape[0] - t_0_comb.shape[0]), "out of", str(t_end_comb.shape[0]), "sgRNAs."]))
-    print("\n---\n")
-        
-    # add pseudocount of 10 after filtering
-    t_0_comb = t_0_comb + 10
-    t_end_comb = t_end_comb + 10
-    
-    # some sgRNAs were filtered out
-    overlapping_sgRNAs = sorted(list(set(t_0_comb.index).intersection(set(t_end_comb.index))))
-    
-    t_0_comb = t_0_comb.loc[overlapping_sgRNAs,:]
-    t_end_comb = t_end_comb.loc[overlapping_sgRNAs,:]
-    curr_counts = curr_counts.loc[overlapping_sgRNAs,:]
-    
-    for subset in set(curr_counts['target_type']):
-        idx = curr_counts.loc[curr_counts['target_type'] == subset,:].index
-
-        # normalize to the median of the all time points
-        normalization_value = np.median(pd.concat([t_0_comb.loc[idx,:], t_end_comb.loc[idx,:]], axis = 1).sum(axis = 0))
-
-        t_0_comb.loc[idx,:] = normalize_counts(t_0_comb.loc[idx,:], set_normalization = normalization_value)
-        t_end_comb.loc[idx,:] = normalize_counts(t_end_comb.loc[idx,:], set_normalization = normalization_value)
-
-    # if mismatch, average
-    if t_0_comb.shape[1] != t_end_comb.shape[1]:
-        print("Mismatch times, averaging...")
-        t_0_comb = pd.DataFrame(data = t_0_comb.apply(lambda x: np.mean(x), axis = 1).values,
-                     index = t_0_comb.index)
-        t_end_comb = pd.DataFrame(data = t_end_comb.apply(lambda x: np.mean(x), axis = 1).values,
-             index = t_end_comb.index)
-    
-    # set FC
-    curr_counts['FC'] = 0
-    
-    # add NOT sorted targets
-#     curr_counts['sgRNA_pair'] = ['|'.join(sorted([curr_counts['sgRNA_guide_name_g1'].iloc[i], curr_counts['sgRNA_guide_name_g2'].iloc[i]])) for i in range(curr_counts.shape[0])]
-#     curr_counts['gene_pair'] = ['|'.join(sorted([curr_counts['sgRNA_target_name_g1'].iloc[i], curr_counts['sgRNA_target_name_g2'].iloc[i]])) for i in range(curr_counts.shape[0])]
-    
-    # add sorted targets
-    sorted_gene_pairs, sorted_gene_guides = sort_pairs_and_guides(curr_counts.copy())
-    curr_counts['sgRNA_pair'] = sorted_gene_guides
-    curr_counts['gene_pair'] = sorted_gene_pairs
-    
-    # get count annotations
-    count_annotations = curr_counts.loc[:,['sgRNA_guide_name_g1', 'sgRNA_guide_name_g2', 'sgRNA_target_name_g1', 'sgRNA_target_name_g2', 'target_type', 'sgRNA_pair', 'gene_pair']].copy()
+    # get save location
+    save_loc = os.path.join(store_loc, save_dir, curr_study, curr_cl)
+    os.makedirs(save_loc, exist_ok = True)
 
     
-    ######### /preprocessing
-    
-    print('Starting scoring..')
-    
-    replicate_results = []
-    for i in range(t_0_comb.shape[1]):
-        print('calculating for replicate ' + str(i))
+    if os.path.exists(os.path.join(save_loc, "sgRNA_results.p")) and (not re_run):
+        print('Loading final results!')
+        #results =  pd.read_pickle(os.path.join(save_loc, "sgRNA_results.gzip"))
+        with open(os.path.join(save_loc, "sgRNA_results.p"), 'rb') as handle:
+            results = pickle.load(handle)
+    else:
 
-        replicate_fc = pd.DataFrame(data = np.log2(t_end_comb.iloc[:, i]/t_0_comb.iloc[:, i]).values,
-                                    index = t_end_comb.index,
-                                    columns = ['FC'])
+        ######### preprocessing
+        t_0_comb, t_end_comb = get_raw_counts(curr_counts)
 
-        # merge
-        replicate_fc = replicate_fc.merge(count_annotations, left_index = True, right_index = True)
+        # filter counts, only at T0
+        t_0_comb = filter_counts(t_0_comb, filtering_counts = 35)
+        print(' '.join(['Filtered a total of', str(t_end_comb.shape[0] - t_0_comb.shape[0]), "out of", str(t_end_comb.shape[0]), "sgRNAs."]))
+        print("\n---\n")
 
-        # get the three target categories
-        single = replicate_fc.loc[curr_counts['target_type'] == 'Single']
-        dual = replicate_fc.loc[curr_counts['target_type'] == 'Dual']
-        control = replicate_fc.loc[curr_counts['target_type'] == 'Control']
+        # add pseudocount of 10 after filtering
+        t_0_comb = t_0_comb + 10
+        t_end_comb = t_end_comb + 10
 
-        ## proceed with GI calculation
-        temp_repeat = single.copy()
-        temp_repeat['sgRNA_guide_name_g1'] = single["sgRNA_guide_name_g2"]
-        temp_repeat['sgRNA_target_name_g1'] = single["sgRNA_target_name_g2"]
-        temp_repeat['sgRNA_guide_name_g2'] = single["sgRNA_guide_name_g1"]
-        temp_repeat['sgRNA_target_name_g2'] = single["sgRNA_target_name_g1"]
+        # some sgRNAs were filtered out
+        overlapping_sgRNAs = sorted(list(set(t_0_comb.index).intersection(set(t_end_comb.index))))
 
-        single_repeat = pd.concat([single, temp_repeat])
+        t_0_comb = t_0_comb.loc[overlapping_sgRNAs,:]
+        t_end_comb = t_end_comb.loc[overlapping_sgRNAs,:]
+        curr_counts = curr_counts.loc[overlapping_sgRNAs,:]
 
-        # get single sgRNA impact
-        EC_single = single_repeat.groupby("sgRNA_guide_name_g1")['FC'].apply(
-                lambda x: np.median(x))
-        sgRNA_SE = single_repeat.groupby("sgRNA_guide_name_g1")['FC'].apply(
-            lambda x: median_SE_constant * np.sqrt(np.var(x) / np.size(x)))
+        if full_normalization:
+            print('Full normalization...')
+
+            # normalize to the median of the all time points
+            normalization_value = np.median(pd.concat([t_0_comb, t_end_comb], axis = 1).sum(axis = 0))
+
+            t_0_comb = normalize_counts(t_0_comb, set_normalization = normalization_value)
+            t_end_comb = normalize_counts(t_end_comb, set_normalization = normalization_value)
+
+        else:
+            print('Not full normalization...')
+
+            for subset in set(curr_counts['target_type']):
+                idx = curr_counts.loc[curr_counts['target_type'] == subset,:].index
+
+                # normalize to the median of the all time points
+                normalization_value = np.median(pd.concat([t_0_comb.loc[idx,:], t_end_comb.loc[idx,:]], axis = 1).sum(axis = 0))
+
+                t_0_comb.loc[idx,:] = normalize_counts(t_0_comb.loc[idx,:], set_normalization = normalization_value)
+                t_end_comb.loc[idx,:] = normalize_counts(t_end_comb.loc[idx,:], set_normalization = normalization_value)
+
+        # if mismatch, average
+        if t_0_comb.shape[1] != t_end_comb.shape[1]:
+            print("Mismatch times, averaging...")
+            t_0_comb = pd.DataFrame(data = t_0_comb.apply(lambda x: np.mean(x), axis = 1).values,
+                         index = t_0_comb.index)
+            t_end_comb = pd.DataFrame(data = t_end_comb.apply(lambda x: np.mean(x), axis = 1).values,
+                 index = t_end_comb.index)
+
+        # set FC
+        curr_counts['FC'] = 0
+
+        # add NOT sorted targets
+    #     curr_counts['sgRNA_pair'] = ['|'.join(sorted([curr_counts['sgRNA_guide_name_g1'].iloc[i], curr_counts['sgRNA_guide_name_g2'].iloc[i]])) for i in range(curr_counts.shape[0])]
+    #     curr_counts['gene_pair'] = ['|'.join(sorted([curr_counts['sgRNA_target_name_g1'].iloc[i], curr_counts['sgRNA_target_name_g2'].iloc[i]])) for i in range(curr_counts.shape[0])]
+
+        # add sorted targets
+        sorted_gene_pairs, sorted_gene_guides = sort_pairs_and_guides(curr_counts.copy())
+        curr_counts['sgRNA_pair'] = sorted_gene_guides
+        curr_counts['gene_pair'] = sorted_gene_pairs
+
+        # get count annotations
+        count_annotations = curr_counts.loc[:,['sgRNA_guide_name_g1', 'sgRNA_guide_name_g2', 'sgRNA_target_name_g1', 'sgRNA_target_name_g2', 'target_type', 'sgRNA_pair', 'gene_pair']].copy()
 
 
-        EC_control = None
-        if control.shape[0] != 0:# and (study != 'parrish_data')
+        ######### /preprocessing
 
-            temp_repeat = control.copy()
-            temp_repeat['sgRNA_guide_name_g1'] = control["sgRNA_guide_name_g2"]
-            temp_repeat['sgRNA_guide_name_g2'] = control["sgRNA_guide_name_g1"]
+        print('Starting scoring..')
 
-            EC_control = np.median(pd.concat([control, temp_repeat])['FC'])
+        replicate_results = []
+        for i in range(t_0_comb.shape[1]):
+            print('calculating for replicate ' + str(i))
 
-        ## get all pairs
-        all_pairs = set(dual['sgRNA_guide_name_g1']).union(set(dual['sgRNA_guide_name_g2']))
+            replicate_fc = pd.DataFrame(data = np.log2(t_end_comb.iloc[:, i]/t_0_comb.iloc[:, i]).values,
+                                        index = t_end_comb.index,
+                                        columns = ['FC'])
 
-        missing_pairs = np.array(list(all_pairs.difference(set(EC_single.index))))
+            # merge
+            replicate_fc = replicate_fc.merge(count_annotations, left_index = True, right_index = True)
 
-        print(' '.join(["Filtered single sgRNA count:", str(len(set(missing_pairs)))]))
-
-        # add them as 0s
-
-        EC_single = pd.concat([EC_single, pd.Series(index = missing_pairs, data = np.zeros(len(missing_pairs)))])
-        sgRNA_SE = pd.concat([sgRNA_SE, pd.Series(index = missing_pairs, data = np.zeros(len(missing_pairs)))])
-
-        sgRNA_level_scores = dual.groupby(['gene_pair', 'sgRNA_pair'], as_index = False)['FC'].apply(lambda x: np.mean(x))
-        sgRNA_level_SE = dual.groupby(['gene_pair', 'sgRNA_pair'], as_index = False)['FC'].apply(lambda x: np.sqrt(np.var(x) / np.size(x)))
-
-        guide_1 = np.array([i.split('|')[0] for i in sgRNA_level_scores['sgRNA_pair']])
-        guide_2 = np.array([i.split('|')[1] for i in sgRNA_level_scores['sgRNA_pair']])
-        EC_1 = EC_single[guide_1]
-        EC_2 = EC_single[guide_2]
-
-        SE_1 = sgRNA_SE[guide_1]
-        SE_2 = sgRNA_SE[guide_2]
-
-        sgRNA_level_scores['SL'] = sgRNA_level_scores['FC'].values - EC_1.values - EC_2.values
-        sgRNA_level_scores['SE'] = np.sqrt(np.square(sgRNA_level_SE['FC'].values) + np.square(SE_1.values) + np.square(SE_2.values))
-        sgRNA_level_scores['SE'].loc[sgRNA_level_scores['SE'].isna()] = 1
-        sgRNA_level_scores['SE'].loc[sgRNA_level_scores['SE'] == 0] = 1
-        sgRNA_level_scores['Z-Score'] = sgRNA_level_scores['SL'].values/sgRNA_level_scores['SE'].values
-
-        gene_SL_scores_nobackground = sgRNA_level_scores.groupby('gene_pair')['Z-Score'].apply(lambda x: np.median(x))
-        gene_SL_scores_SE = sgRNA_level_scores.groupby('gene_pair')['Z-Score'].apply(lambda x:  median_SE_constant * np.sqrt(np.var(x) / np.size(x)))
-        gene_SL_scores_SE.loc[gene_SL_scores_SE.isna()] = 1
-        gene_SL_scores_SE.loc[gene_SL_scores_SE == 0] = 1
-        gene_SL_scores_nobackground_Z = gene_SL_scores_nobackground/gene_SL_scores_SE
-
-        results_nb = pd.concat([gene_SL_scores_nobackground, gene_SL_scores_SE, gene_SL_scores_nobackground_Z], axis = 1)
-        results_nb.columns = ['sgRNA-Score-NB_' + str(i), 'sgRNA-Score-NB SE_' + str(i), 'sgRNA-Score-NB SL_' + str(i)]
-
-        replicate_results.append(results_nb)
-
-        if EC_control is not None:
-
-            single['FC'] = single['FC'] - EC_control
-            dual['FC'] = dual['FC'] - EC_control
+            # get the three target categories
+            single = replicate_fc.loc[curr_counts['target_type'] == 'Single']
+            dual = replicate_fc.loc[curr_counts['target_type'] == 'Dual']
+            control = replicate_fc.loc[curr_counts['target_type'] == 'Control']
 
             ## proceed with GI calculation
             temp_repeat = single.copy()
@@ -1517,42 +1345,117 @@ def run_sgrna_scores(curr_counts):
             sgRNA_level_scores['SE'].loc[sgRNA_level_scores['SE'] == 0] = 1
             sgRNA_level_scores['Z-Score'] = sgRNA_level_scores['SL'].values/sgRNA_level_scores['SE'].values
 
-            gene_SL_scores_w_background = sgRNA_level_scores.groupby('gene_pair')['Z-Score'].apply(lambda x: np.median(x))
+            gene_SL_scores_nobackground = sgRNA_level_scores.groupby('gene_pair')['Z-Score'].apply(lambda x: np.median(x))
             gene_SL_scores_SE = sgRNA_level_scores.groupby('gene_pair')['Z-Score'].apply(lambda x:  median_SE_constant * np.sqrt(np.var(x) / np.size(x)))
             gene_SL_scores_SE.loc[gene_SL_scores_SE.isna()] = 1
             gene_SL_scores_SE.loc[gene_SL_scores_SE == 0] = 1
-            gene_SL_scores_w_background_Z = gene_SL_scores_w_background/gene_SL_scores_SE
+            gene_SL_scores_nobackground_Z = gene_SL_scores_nobackground/gene_SL_scores_SE
+
+            results_nb = pd.concat([gene_SL_scores_nobackground, gene_SL_scores_SE, gene_SL_scores_nobackground_Z], axis = 1)
+            results_nb.columns = ['sgRNA-Score-NB_' + str(i), 'sgRNA-Score-NB SE_' + str(i), 'sgRNA-Score-NB SL_' + str(i)]
+
+            replicate_results.append(results_nb)
+
+            if EC_control is not None:
+
+                single['FC'] = single['FC'] - EC_control
+                dual['FC'] = dual['FC'] - EC_control
+
+                ## proceed with GI calculation
+                temp_repeat = single.copy()
+                temp_repeat['sgRNA_guide_name_g1'] = single["sgRNA_guide_name_g2"]
+                temp_repeat['sgRNA_target_name_g1'] = single["sgRNA_target_name_g2"]
+                temp_repeat['sgRNA_guide_name_g2'] = single["sgRNA_guide_name_g1"]
+                temp_repeat['sgRNA_target_name_g2'] = single["sgRNA_target_name_g1"]
+
+                single_repeat = pd.concat([single, temp_repeat])
+
+                # get single sgRNA impact
+                EC_single = single_repeat.groupby("sgRNA_guide_name_g1")['FC'].apply(
+                        lambda x: np.median(x))
+                sgRNA_SE = single_repeat.groupby("sgRNA_guide_name_g1")['FC'].apply(
+                    lambda x: median_SE_constant * np.sqrt(np.var(x) / np.size(x)))
 
 
-            results_b = pd.concat([gene_SL_scores_w_background, gene_SL_scores_SE, gene_SL_scores_w_background_Z], axis = 1)
-            results_b.columns = ['sgRNA-Score-B_' + str(i), 'sgRNA-Score-B SE_' + str(i), 'sgRNA-Score-B SL_' + str(i)]
+                EC_control = None
+                if control.shape[0] != 0:# and (study != 'parrish_data')
 
-            replicate_results.append(results_b)
+                    temp_repeat = control.copy()
+                    temp_repeat['sgRNA_guide_name_g1'] = control["sgRNA_guide_name_g2"]
+                    temp_repeat['sgRNA_guide_name_g2'] = control["sgRNA_guide_name_g1"]
 
-    # save results
-    results = {}
-    results['SGRA_DERIVED_NB_SCORE'] = None
-    results['SGRA_DERIVED_B_SCORE'] = None
+                    EC_control = np.median(pd.concat([control, temp_repeat])['FC'])
 
-    merged = pd.concat(replicate_results, axis = 1)
-    
-    # sort the names
-    merged.index = ['|'.join(sorted(i.split('|'))) for i in merged .index]
+                ## get all pairs
+                all_pairs = set(dual['sgRNA_guide_name_g1']).union(set(dual['sgRNA_guide_name_g2']))
 
-    merged['sgRNA-Score_Average_NB'] = merged.loc[:,['sgRNA-Score-NB SL_' + str(i) for i in range(t_end_comb.shape[1])]].mean(axis = 1)
-    results['SGRA_DERIVED_NB_SCORE'] = pd.DataFrame(merged['sgRNA-Score_Average_NB'])
-    results['SGRA_DERIVED_NB_SCORE'].columns = ['SL_score']
-    results['SGRA_DERIVED_NB_SCORE']['Gene 1'] = [i.split('|')[0] for i in results['SGRA_DERIVED_NB_SCORE'].index]
-    results['SGRA_DERIVED_NB_SCORE']['Gene 2'] = [i.split('|')[1] for i in results['SGRA_DERIVED_NB_SCORE'].index]
+                missing_pairs = np.array(list(all_pairs.difference(set(EC_single.index))))
 
-    if 'sgRNA-Score-B_0' in merged.columns:
-        merged['sgRNA-Score_Average_B'] = merged.loc[:,['sgRNA-Score-B SL_' + str(i) for i in range(t_end_comb.shape[1])]].mean(axis = 1)
-        results['SGRA_DERIVED_B_SCORE'] = pd.DataFrame(merged['sgRNA-Score_Average_B'])
-        results['SGRA_DERIVED_B_SCORE'].columns = ['SL_score']
-        results['SGRA_DERIVED_B_SCORE']['Gene 1'] = [i.split('|')[0] for i in results['SGRA_DERIVED_B_SCORE'].index]
-        results['SGRA_DERIVED_B_SCORE']['Gene 2'] = [i.split('|')[1] for i in results['SGRA_DERIVED_B_SCORE'].index]
+                print(' '.join(["Filtered single sgRNA count:", str(len(set(missing_pairs)))]))
+
+                # add them as 0s
+
+                EC_single = pd.concat([EC_single, pd.Series(index = missing_pairs, data = np.zeros(len(missing_pairs)))])
+                sgRNA_SE = pd.concat([sgRNA_SE, pd.Series(index = missing_pairs, data = np.zeros(len(missing_pairs)))])
+
+                sgRNA_level_scores = dual.groupby(['gene_pair', 'sgRNA_pair'], as_index = False)['FC'].apply(lambda x: np.mean(x))
+                sgRNA_level_SE = dual.groupby(['gene_pair', 'sgRNA_pair'], as_index = False)['FC'].apply(lambda x: np.sqrt(np.var(x) / np.size(x)))
+
+                guide_1 = np.array([i.split('|')[0] for i in sgRNA_level_scores['sgRNA_pair']])
+                guide_2 = np.array([i.split('|')[1] for i in sgRNA_level_scores['sgRNA_pair']])
+                EC_1 = EC_single[guide_1]
+                EC_2 = EC_single[guide_2]
+
+                SE_1 = sgRNA_SE[guide_1]
+                SE_2 = sgRNA_SE[guide_2]
+
+                sgRNA_level_scores['SL'] = sgRNA_level_scores['FC'].values - EC_1.values - EC_2.values
+                sgRNA_level_scores['SE'] = np.sqrt(np.square(sgRNA_level_SE['FC'].values) + np.square(SE_1.values) + np.square(SE_2.values))
+                sgRNA_level_scores['SE'].loc[sgRNA_level_scores['SE'].isna()] = 1
+                sgRNA_level_scores['SE'].loc[sgRNA_level_scores['SE'] == 0] = 1
+                sgRNA_level_scores['Z-Score'] = sgRNA_level_scores['SL'].values/sgRNA_level_scores['SE'].values
+
+                gene_SL_scores_w_background = sgRNA_level_scores.groupby('gene_pair')['Z-Score'].apply(lambda x: np.median(x))
+                gene_SL_scores_SE = sgRNA_level_scores.groupby('gene_pair')['Z-Score'].apply(lambda x:  median_SE_constant * np.sqrt(np.var(x) / np.size(x)))
+                gene_SL_scores_SE.loc[gene_SL_scores_SE.isna()] = 1
+                gene_SL_scores_SE.loc[gene_SL_scores_SE == 0] = 1
+                gene_SL_scores_w_background_Z = gene_SL_scores_w_background/gene_SL_scores_SE
+
+
+                results_b = pd.concat([gene_SL_scores_w_background, gene_SL_scores_SE, gene_SL_scores_w_background_Z], axis = 1)
+                results_b.columns = ['sgRNA-Score-B_' + str(i), 'sgRNA-Score-B SE_' + str(i), 'sgRNA-Score-B SL_' + str(i)]
+
+                replicate_results.append(results_b)
+
+        # save results
+        results = {}
+        results['SGRNA_DERIVED_NB_SCORE'] = None
+        results['SGRNA_DERIVED_B_SCORE'] = None
+
+        merged = pd.concat(replicate_results, axis = 1)
+
+        # sort the names
+        merged.index = ['|'.join(sorted(i.split('|'))) for i in merged .index]
+
+        merged['sgRNA-Score_Average_NB'] = merged.loc[:,['sgRNA-Score-NB SL_' + str(i) for i in range(t_end_comb.shape[1])]].mean(axis = 1)
+        results['SGRNA_DERIVED_NB_SCORE'] = pd.DataFrame(merged['sgRNA-Score_Average_NB'])
+        results['SGRNA_DERIVED_NB_SCORE'].columns = ['SL_score']
+        results['SGRNA_DERIVED_NB_SCORE']['Gene 1'] = [i.split('|')[0] for i in results['SGRNA_DERIVED_NB_SCORE'].index]
+        results['SGRNA_DERIVED_NB_SCORE']['Gene 2'] = [i.split('|')[1] for i in results['SGRNA_DERIVED_NB_SCORE'].index]
+
+        if 'sgRNA-Score-B_0' in merged.columns:
+            merged['sgRNA-Score_Average_B'] = merged.loc[:,['sgRNA-Score-B SL_' + str(i) for i in range(t_end_comb.shape[1])]].mean(axis = 1)
+            results['SGRNA_DERIVED_B_SCORE'] = pd.DataFrame(merged['sgRNA-Score_Average_B'])
+            results['SGRNA_DERIVED_B_SCORE'].columns = ['SL_score']
+            results['SGRNA_DERIVED_B_SCORE']['Gene 1'] = [i.split('|')[0] for i in results['SGRNA_DERIVED_B_SCORE'].index]
+            results['SGRNA_DERIVED_B_SCORE']['Gene 2'] = [i.split('|')[1] for i in results['SGRNA_DERIVED_B_SCORE'].index]
+            
+        # save for easy loading
+        with open(os.path.join(save_loc, "sgRNA_results.p"), 'wb') as handle:
+            pickle.dump(results, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     return(results)
+
 
 
 
@@ -1612,7 +1515,6 @@ def run_mageck_score(curr_counts, curr_study, curr_cl, store_loc = os.getcwd(), 
     ######### create script and run
 
     file_loc = os.path.join(save_loc, 'MAGECK_commands.sh')
-    control_loc = '../../../controls.txt'
 
     fp = open(file_loc, '+w')
     fp.write("#!/bin/sh\n")
@@ -1631,9 +1533,9 @@ def run_mageck_score(curr_counts, curr_study, curr_cl, store_loc = os.getcwd(), 
     command = "mageck test -k counts.csv -t \"" + ','.join(t_end_col_locs) + "\" --normcounts-to-file -n out --pdf-report"
     if 'Control' in set(curr_counts['target_type']):
         if paired:
-            command = "mageck test -k counts.csv -t \"" + ','.join(t_end_col_locs) + "\" --paired --norm-method control --control-gene " + control_loc + " --normcounts-to-file -n out --pdf-report"
+            command = "mageck test -k counts.csv -t \"" + ','.join(t_end_col_locs) + "\" --paired --norm-method control --control-gene CONTROL|CONTROL --normcounts-to-file -n out --pdf-report"
         else:
-            command = "mageck test -k counts.csv -t \"" + ','.join(t_end_col_locs) + "\" --norm-method control --control-gene " + control_loc + " --normcounts-to-file -n out --pdf-report"
+            command = "mageck test -k counts.csv -t \"" + ','.join(t_end_col_locs) + "\" --norm-method control --control-gene CONTROL|CONTROL --normcounts-to-file -n out --pdf-report"
 
     fp.write(command)
     fp.close()
@@ -1981,14 +1883,14 @@ def query_result_table(curr_counts, table_name, curr_study, curr_cl, engine_link
     **Params**:
 
     * curr_counts: Counts to obtain the scores from.
-    * table_name: Must be any of the 7 scoring table names:
-        * HORLBECK_SCORE
-        * MEDIAN_B_SCORE
-        * MEDIAN_NB_SCORE
-        * GEMINI_SCORE
-        * MAGECK_SCORE
-        * SGRA_DERIVED_B_SCORE
-        * SGRA_DERIVED_NB_SCORE
+    * table_name: Must be any of the 7 scoring table names, unless customly added:
+        * horlbeck_score
+        * median_b_score
+        * median_nb_score
+        * gemini_score
+        * mageck_score
+        * sgrna_derived_b_score
+        * sgrna_derived_nb_score
     * curr_study: String, name of the study to obtain the results for.
     * curr_cl: String, name of the cell line to obtain the results for.
     * engine_link: SQLAlchemy connection for the database.
@@ -2013,7 +1915,6 @@ def query_result_table(curr_counts, table_name, curr_study, curr_cl, engine_link
     # add column names to the front
     names_dict = {i: table_name + '_' + i for i in query_res.columns[1:]}
     query_res.rename(columns = names_dict, inplace = True)
-    #query_res.columns[1:] = table_name + '_' + query_res.columns[1:]
     
     print('Available gene pairs: ' + str(query_res.shape[0]))
     

@@ -19,20 +19,20 @@ demo_data = SLKB.load_demo_data()
 
 ### generate_database
 
-Creates a local sqlite3 database, using SLKB schema.
+Creates a sqlite3 or mysql database, using SLKB schema.
 
 ```
-db_engine = SLKB.create_SLKB(location = os.getcwd(), name = 'myCDKO_db')
+SLKB.create_SLKB(engine = 'sqlite:///SLKB_sqlite3', db_type = 'sqlite3')
 ```
 
 **Params**:
 
-* location: Location to store the database
-* name: Name of the database
+* engine: sqlalchemy url object. (Default: sqlite:///SLKB_sqlite3)
+* db_type: Type of database to use schema for, currently available in mysql and sqlite3. (Default: sqlite3)
 
 **Returns**:
 
-* db_engine: Database engine link with sqlite3.
+* None.
 
 <hr>
 
@@ -87,12 +87,18 @@ SLKB.insert_study_to_db(SLKB_engine, db_inserts)
 Calculates Median B/NB Scores.
 
 ```
-median_res = SLKB.run_median_scores(curr_counts)
+median_res = SLKB.run_median_scores(curr_counts, curr_study, curr_cl, full_normalization = False, re_run = False, store_loc = os.getcwd(), save_dir = 'MEDIAN_Files')
 ```
 
 **Params**:
 
-* curr_counts: Counts to calculate scores to.
+* curr_counts: Counts to calculate scores to.)
+* curr_study: String, name of study to analyze data for.
+* curr_cl: String, name of cell line to analyze data for.
+* full_normalization: Whether to normalize counts across the whole sample or according to target type (Default: False)
+* re_run: Boolean. Recreate and rerun the results instead of loading for subsequent analyses (Default: False)
+* store_loc: String: Directory to store the MAGeCK files to. (Default: current working directory)
+* save_dir: String: Folder name to store the MAGeCK files to. (Default: 'MEDIAN_Files')
 
 **Returns**:
 
@@ -102,13 +108,17 @@ median_res = SLKB.run_median_scores(curr_counts)
 
 Calculates sgRNA Derived N/NB scores.
 
-```
-sgRNA_res = SLKB.run_sgrna_scores(curr_counts)
-```
+sgRNA_res = SLKB.run_sgrna_scores(curr_counts, curr_study, curr_cl, full_normalization = False, re_run = False, store_loc = os.getcwd(), save_dir = 'sgRNA-DERIVED_Files')
 
 **Params**:
 
-* curr_counts: Counts to calculate scores to.
+* curr_counts: Counts to calculate scores to.)
+* curr_study: String, name of study to analyze data for.
+* curr_cl: String, name of cell line to analyze data for.
+* full_normalization: Whether to normalize counts across the whole sample or according to target type (Default: False)
+* re_run: Boolean. Recreate and rerun the results instead of loading for subsequent analyses (Default: False)
+* store_loc: String: Directory to store the MAGeCK files to. (Default: current working directory)
+* save_dir: String: Folder name to store the MAGeCK files to. (Default: 'sgRNA-DERIVED_Files')
 
 **Returns**:
 
@@ -237,7 +247,7 @@ Helper functions are used across different functions within SLKB. You may use th
 
 SLKB's helper functions are also located within the R environment. Functions for majority vote calculation, network visualization, and venn diagram creatios are located under the website's GitHub link. They are not included within the python package. 
 
-To have access to those methods, you need to load in the functions to your R environment either through the URL or download them seperately through [SLKB web app](https://www.google.com)
+To have access to those methods, you need to load in the functions to your R environment either through the URL or download them seperately through [SLKB web app](https://slkbapp.azurewebsites.net/)
 
 ```
 source('/path/to/SLKB/repo/functions.R')

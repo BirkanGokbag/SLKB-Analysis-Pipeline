@@ -20,18 +20,14 @@ pip install dist/SLKB-1.0.0.tar.gz --user
 The project requires several packages to work appropriately. These packages and their versions can be found within requirements.txt or alternatively down below.
 
 ```
-scipy==1.5.2
-numpy==1.19.1
-seaborn==0.10.1
-matplotlib==3.3.0
-pandas==1.1.0
-umap_learn==0.4.6
-hdbscan==0.8.26
-scikit_learn==0.23.2
-scikit_plot==0.3.7
-scikit_bio==0.5.6
-umap-learn==0.4.6
-torch==1.6.0
-torchvision==0.7.0
-tensorboard==2.3.0
+pandas==1.5.3
+numpy==1.21.0
+SQLAlchemy==2.0.12
+scipy==1.7.3
+ipykernel==6.9.1
+ipython==8.2.0
+ipython-genutils==0.2.0
+ipywidgets==7.6.5
+jupyterlab==3.3.2
+mysql-connector-python==8.0.29
 ```

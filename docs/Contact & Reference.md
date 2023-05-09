@@ -18,26 +18,3 @@ Gökbağ B, Tang S, Fan K, Cheng L, Li L. SLKB: Synthetic lethality knowledge ba
     url = {},
   }
 ```
-
-### Installing from PyPI (Recommended)
-
-```
-pip install SLKB
-```
-
-### Creating from source
-
-After creating your desired environment, run the following under package folder
-
-```
-python setup.py sdist
-pip install dist/SLKB-1.0.0.tar.gz --user
-```
-
-### Requirements
-
-The project requires several packages to work appropriately. These packages and their versions can be found within requirements.txt or alternatively down below.
-
-```
-
-```
