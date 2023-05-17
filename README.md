@@ -7,7 +7,7 @@
 
 ## Introduction
 
-SLKB (Synthetic Lethality Knowledge Base) is a knowledgebase for CRISPR-Cas9 dual knockdown (CDKO) experiments. The details on deposited data and available functions can be found [within the paper.](https://github.com/BirkanGokbag/SLKB-Analysis-Pipeline)
+SLKB (Synthetic Lethality Knowledge Base) is a knowledge base for CRISPR-Cas9 dual knockdown (CDKO) experiments. The details on deposited data and available functions can be found [within the paper.](https://github.com/BirkanGokbag/SLKB-Analysis-Pipeline)
 
 ## Installation
 

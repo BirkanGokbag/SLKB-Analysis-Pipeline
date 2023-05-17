@@ -251,7 +251,7 @@ if not check_if_added_to_table(curr_counts.copy(), 'GEMINI_SCORE', SLKB_engine):
 Following the score calculations, the query is relatively easy. In this snippet of code, we will access the scores for one of the tables.
 
 ```
-curr_score = SLKB.query_result_table(curr_counts.copy(), 'median_b_score', curr_study, curr_cl, SLKB_engine))
+curr_score = SLKB.query_result_table(curr_counts.copy(), 'median_b_score', curr_study, curr_cl, SLKB_engine)
 ```
 
 ### Query Results (For all tables)
@@ -265,6 +265,4 @@ all_scores = pd.read_sql_query(con=SLKB_engine.connect(),
 
 ### Further Analyses
 
-SLKB web application is available for download to help analyze your generated data. You can access the website at the following [link](https://slkbapp.azurewebsites.net/), and it's code at the [link](https://www.google.com). You will need to enter the database into the KB/ folder and calculated scores into the www/ folder (if csv) with their appropriate names. For more details, check ```server.r``` within the web app.
-
-Alternatively, you can access its helper functions. Discussed in the [API](API.md).
+SLKB web application is available for download to help analyze your generated data. You can access the website at the following [link](https://slkb.osubmi.org/), and it's code at the [link](https://github.com/BirkanGokbag/SLKB-Analysis-Pipeline). For more details, check ```server.r``` within the web app.

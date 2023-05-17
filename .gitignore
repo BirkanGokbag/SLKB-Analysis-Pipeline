@@ -5,3 +5,4 @@ help.ignore
 *_env
 *egg-info
 *dist
+*site

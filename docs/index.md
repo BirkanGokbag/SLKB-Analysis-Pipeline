@@ -16,6 +16,10 @@ Synthetic lethality knowledge base (SLKB) is dedicated to curating CRISPR dual k
 
 Following SLKB pipeline, yielding results can be loaded within SLKB web app for full experience.
 
+## Using SLKB
+
+Users can get started through the [shared jupyter notebook file](https://github.com/BirkanGokbag/SLKB-Analysis-Pipeline/blob/main/SLKB/files/pipeline.ipynb). Pipeline with it's full details can be browsed within the [documentation](pipeline.md).
+
 ## Database Design
 
 ![Schema](images/DB.png)
@@ -26,4 +30,4 @@ Following SLKB pipeline, yielding results can be loaded within SLKB web app for 
 
 ## Interactive Website
 
-Located under the pipeline [subdirectory.](https://github.com/BirkanGokbag/SLKB-Analysis-Pipeline)
+Located under the pipeline [subdirectory.](https://github.com/BirkanGokbag/SLKB-Analysis-Pipeline/blob/main/SLKB/files/SLKB_webapp.zip)

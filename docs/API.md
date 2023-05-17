@@ -36,6 +36,24 @@ SLKB.create_SLKB(engine = 'sqlite:///SLKB_sqlite3', db_type = 'sqlite3')
 
 <hr>
 
+## extract_SLKB_webapp
+
+Extracts the SLKB webapp to the specified location.
+
+```
+SLKB.extract_SLKB_webapp(location = os.getcwd())
+```
+
+**Params**:
+
+* location: Location to extract SLKB files. (Default: Current working directory)
+
+**Returns**:
+
+* None.
+
+<hr>
+
 ### prepare_study_for_export
 
 Prepares the counts, scores, and sequences files for insertion into the DB.
@@ -205,8 +223,8 @@ SLKB.check_if_added_to_table(curr_counts, score_name, SLKB_engine)
     * MEDIAN_NB_SCORE
     * GEMINI_SCORE
     * MAGECK_SCORE
-    * SGRA_DERIVED_B_SCORE
-    * SGRA_DERIVED_NB_SCORE
+    * SGRNA_DERIVED_B_SCORE
+    * SGRNA_DERIVED_NB_SCORE
 
 **Returns**:
 
@@ -229,8 +247,8 @@ result = SLKB.query_result_table(curr_counts, table_name, curr_study, curr_cl, e
     * MEDIAN_NB_SCORE
     * GEMINI_SCORE
     * MAGECK_SCORE
-    * SGRA_DERIVED_B_SCORE
-    * SGRA_DERIVED_NB_SCORE
+    * SGRNA_DERIVED_B_SCORE
+    * SGRNA_DERIVED_NB_SCORE
 * curr_study: String, name of the study to obtain the results for.
 * curr_cl: String, name of the cell line to obtain the results for.
 * engine_link: SQLAlchemy connection for the database.
@@ -239,56 +257,4 @@ result = SLKB.query_result_table(curr_counts, table_name, curr_study, curr_cl, e
 
 * result: A pandas dataframe of the inserted results. Includes annotations for gene pair, study origin, and cell line origin.
 
-**Helper Functions**
-
-Helper functions are used across different functions within SLKB. You may use them as is or modify them to suit your needs.
-
-## Helper R Functions
-
-SLKB's helper functions are also located within the R environment. Functions for majority vote calculation, network visualization, and venn diagram creatios are located under the website's GitHub link. They are not included within the python package. 
-
-To have access to those methods, you need to load in the functions to your R environment either through the URL or download them seperately through [SLKB web app](https://slkbapp.azurewebsites.net/)
-
-```
-source('/path/to/SLKB/repo/functions.R')
-```
-
-### create_venn_diagram
-
-Returns the venn diagram for the yielded results.
-
-```
-create_venn_diagram(results, top_p = '10percent', output_dir = 'venn_results')
-```
-
-**Params**:
-
-* results: Obtain as a result of running the ```SLKB_query``` on Python.
-* top_p: Top percentage of pairs to consider as text (Default: '10percent')
-    * If entered a number and without the keyword 'percent', then that many top pairs are considered.
-* output_dir: Directory to produce results (Default: 'venn_results' folder in current working directory)
-
-**Returns**:
-
-* None
-
-### create_SL_network
-
-Create the SL network based on the pair file provided via VisNetwork. Normally, this is either the scores file or results file that is filtered by the user to include only the specified pairs. The network's edges are color coded based on ```color_base```, and the interactions between SL pairs are highlighted if ```target_genes``` is provided.
-
-```
-network <- create_SL_network(pair_file, color_base = None, target_genes = None, output_dir = 'network_results')
-```
-
-**Params**:
-
-* pair_file: DataFrame of score file (via dplyr and dbPool) and/or result file from ```SLKB_query```.
-* color_base: Criteria to color the edges of the SL network. Options: None (Default), 'cell_line_origin', 'study_origin'
-* target_genes: A list of genes that are targeted for color coding. (Default: None.)
-* output_dir: Directory to produce results (Default: 'network_results' folder in current working directory)
-
-**Returns**:
-
-* A visNetwork object
-
-© Copyright 2023, The Ohio State University, College of Medicine, Biomedical Informatics
+© Copyright 2023, The Ohio State University, College of Medicine, Department of Biomedical Informatics

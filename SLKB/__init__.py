@@ -1,4 +1,5 @@
 # imports
+import shutil
 import numpy as np
 import pandas as pd
 import os
@@ -79,6 +80,23 @@ def create_SLKB(engine = 'sqlite:///SLKB_sqlite3', db_type = 'sqlite3'):
         for com in command.split(';'):
             transaction.execute(sqlalchemy.text(com)) 
 
+
+def extract_SLKB_webapp(location = os.getcwd()):
+    '''
+    Extracts a SLKB webapp to the specified location.
+
+    **Params**:
+
+    * location: Location to extract SLKB files. (Default: Current working directory)
+
+    **Returns**:
+
+    * None.
+    '''
+    webapp_loc = os.path.join(PACKAGE_PATH, 'files', 'SLKB_webapp.zip')
+    print('Extracting to location: ' + location)
+    shutil.unpack_archive(webapp_loc, location)
+    print('Done!')
 
 ###### Data Preperation Function
 
