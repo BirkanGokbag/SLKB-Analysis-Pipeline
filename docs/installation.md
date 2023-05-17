@@ -1,6 +1,6 @@
 ## Installation
 
-### Installing from PyPI (Recommended)
+### Installing from PyPI (Recommended - Upon Release)
 
 ```
 pip install SLKB
