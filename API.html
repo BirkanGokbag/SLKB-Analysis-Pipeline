@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="img/favicon.ico" />
+    <title>API - SLKB</title>
+    <link rel="stylesheet" href="css/theme.css" />
+    <link rel="stylesheet" href="css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "API";
+        var mkdocs_page_input_path = "API.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <script src="js/jquery-3.6.0.min.js" defer></script>
+    <!--[if lt IE 9]>
+      <script src="js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+      <script>hljs.initHighlightingOnLoad();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="index.html" class="icon icon-home"> SLKB
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="./search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="index.html">SLKB Pipeline</a>
+                </li>
+              </ul>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="API.html">API</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#file-formats">File Formats</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#functions-for-data-insertion-to-kb">Functions For Data Insertion to KB</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#generate_database">generate_database</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#extract_slkb_webapp">extract_SLKB_webapp</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#prepare_study_for_export">prepare_study_for_export</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#insert_study_to_db">insert_study_to_db</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#scoring-functions">Scoring Functions</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#median-bnb-score">Median-B/NB Score</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#sgrna-derived-bnb-score">sgRNA-Derived-B/NB Score</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#mageck-score">MAGeCK Score</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#horlbeck-score">Horlbeck Score</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#gemini-score">GEMINI Score</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#check_if_added_to_table">check_if_added_to_table</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#query_results_table">query_results_table</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="Contact%20%26%20Reference.html">Contact & Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="pipeline.html">Pipeline</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="website.html">SLKB Web Application</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">SLKB</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html" class="icon icon-home" alt="Docs"></a> &raquo;</li>
+      <li>API</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/BirkanGokbag/SyntheticLethality-NewDB-Pipeline/edit/master/docs/API.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="api">API</h1>
+<h2 id="file-formats">File Formats</h2>
+<p>A demo data is available for loading. Additional details can be found in the <a href="pipeline.html">pipeline</a>.</p>
+<pre><code>demo_data = SLKB.load_demo_data()
+</code></pre>
+<p><strong>Params</strong>:</p>
+<ul>
+<li>None.</li>
+</ul>
+<p><strong>Returns</strong>:</p>
+<ul>
+<li>demo_data. A list of 3 items: sequence file, counts, fle, and score file.</li>
+</ul>
+<h2 id="functions-for-data-insertion-to-kb">Functions For Data Insertion to KB</h2>
+<h3 id="generate_database">generate_database</h3>
+<p>Creates a sqlite3 or mysql database, using SLKB schema.</p>
+<pre><code>SLKB.create_SLKB(engine = 'sqlite:///SLKB_sqlite3', db_type = 'sqlite3')
+</code></pre>
+<p><strong>Params</strong>:</p>
+<ul>
+<li>engine: sqlalchemy url object. (Default: sqlite:///SLKB_sqlite3)</li>
+<li>db_type: Type of database to use schema for, currently available in mysql and sqlite3. (Default: sqlite3)</li>
+</ul>
+<p><strong>Returns</strong>:</p>
+<ul>
+<li>None.</li>
+</ul>
+<hr>
+
+<h2 id="extract_slkb_webapp">extract_SLKB_webapp</h2>
+<p>Extracts the SLKB webapp to the specified location.</p>
+<pre><code>SLKB.extract_SLKB_webapp(location = os.getcwd())
+</code></pre>
+<p><strong>Params</strong>:</p>
+<ul>
+<li>location: Location to extract SLKB files. (Default: Current working directory)</li>
+</ul>
+<p><strong>Returns</strong>:</p>
+<ul>
+<li>None.</li>
+</ul>
+<hr>
+
+<h3 id="prepare_study_for_export">prepare_study_for_export</h3>
+<p>Prepares the counts, scores, and sequences files for insertion into the DB.</p>
+<pre><code>db_inserts = SLKB.prepare_study_for_export(score_ref, sequence_ref = None, counts_ref = None, study_controls = None, study_conditions = None, can_control_be_substring = True, remove_unrelated_counts = False)
+</code></pre>
+<p><strong>Params</strong>:</p>
+<ul>
+<li>score_ref: A pandas table that adheres to the scores table template. </li>
+<li>sequence_ref: A pandas table that adheres to the sequence table template (default: None). </li>
+<li>counts_ref: A pandas table that adheres to the counts table template (default: None). </li>
+<li>study_controls: A list of control targets of the sgRNAs (default: None).</li>
+<li>study_conditions: A list of two lists; first list contains the replicate names of initial time point, and second list contains the same for final time point (default: None).</li>
+<li>can_control_be_substring: Can the controls be a substring of gene targets (in case of possible name conventions: default: True)</li>
+<li>remove_unrelated_counts = Remove dual counts with targets that are outside of supplied scores targets? (default: False)</li>
+</ul>
+<p><strong>Returns</strong>:</p>
+<ul>
+<li>A dictionary of three items:<ul>
+<li>scores_ref: Contains the procesed scores table (if supplied)</li>
+<li>sequences_ref: Contains the procesed sequences table (if supplied)</li>
+<li>counts_ref: Contains the procesed counts table (if supplied)</li>
+</ul>
+</li>
+</ul>
+<h3 id="insert_study_to_db">insert_study_to_db</h3>
+<p>Inserts the counts to the designated DB.</p>
+<pre><code>SLKB.insert_study_to_db(SLKB_engine, db_inserts)
+</code></pre>
+<p><strong>Params</strong>:</p>
+<ul>
+<li>SLKB_engine: SQLAlchemy engine link</li>
+<li>db_inserts: Processed data, obtained via <code>prepare_study_for_export</code></li>
+</ul>
+<p><strong>Returns</strong>:</p>
+<ul>
+<li>None</li>
+</ul>
+<hr>
+
+<h3 id="scoring-functions">Scoring Functions</h3>
+<h4 id="median-bnb-score">Median-B/NB Score</h4>
+<p>Calculates Median B/NB Scores.</p>
+<pre><code>median_res = SLKB.run_median_scores(curr_counts, curr_study, curr_cl, full_normalization = False, re_run = False, store_loc = os.getcwd(), save_dir = 'MEDIAN_Files')
+</code></pre>
+<p><strong>Params</strong>:</p>
+<ul>
+<li>curr_counts: Counts to calculate scores to.)</li>
+<li>curr_study: String, name of study to analyze data for.</li>
+<li>curr_cl: String, name of cell line to analyze data for.</li>
+<li>full_normalization: Whether to normalize counts across the whole sample or according to target type (Default: False)</li>
+<li>re_run: Boolean. Recreate and rerun the results instead of loading for subsequent analyses (Default: False)</li>
+<li>store_loc: String: Directory to store the MAGeCK files to. (Default: current working directory)</li>
+<li>save_dir: String: Folder name to store the MAGeCK files to. (Default: 'MEDIAN_Files')</li>
+</ul>
+<p><strong>Returns</strong>:</p>
+<ul>
+<li>median_res: A dictionary of two pandas dataframes: Median-B and Median-NB.</li>
+</ul>
+<h4 id="sgrna-derived-bnb-score">sgRNA-Derived-B/NB Score</h4>
+<p>Calculates sgRNA Derived N/NB scores.</p>
+<p>sgRNA_res = SLKB.run_sgrna_scores(curr_counts, curr_study, curr_cl, full_normalization = False, re_run = False, store_loc = os.getcwd(), save_dir = 'sgRNA-DERIVED_Files')</p>
+<p><strong>Params</strong>:</p>
+<ul>
+<li>curr_counts: Counts to calculate scores to.)</li>
+<li>curr_study: String, name of study to analyze data for.</li>
+<li>curr_cl: String, name of cell line to analyze data for.</li>
+<li>full_normalization: Whether to normalize counts across the whole sample or according to target type (Default: False)</li>
+<li>re_run: Boolean. Recreate and rerun the results instead of loading for subsequent analyses (Default: False)</li>
+<li>store_loc: String: Directory to store the MAGeCK files to. (Default: current working directory)</li>
+<li>save_dir: String: Folder name to store the MAGeCK files to. (Default: 'sgRNA-DERIVED_Files')</li>
+</ul>
+<p><strong>Returns</strong>:</p>
+<ul>
+<li>sgRNA_res: A dictionary of two pandas dataframes: sgRNA_derived_B and sgRNA_derived_NB. </li>
+</ul>
+<h4 id="mageck-score">MAGeCK Score</h4>
+<p>Calculates MAGeCK Score. Score files will created at the designated store location and save directory. </p>
+<pre><code>mageck_res = SLKB.run_mageck_score(curr_counts.copy(), curr_study, curr_cl, store_loc = os.getcwd(), save_dir = 'MAGECK_Files', command_line_params = [],re_run = False)   
+</code></pre>
+<p><strong>Params</strong>:
+* curr_counts: Counts to calculate scores to.)
+* curr_study: String, name of study to analyze data for.
+* curr_cl: String, name of cell line to analyze data for.
+* store_loc: String: Directory to store the MAGeCK files to. (Default: current working directory)
+* save_dir: String: Folder name to store the MAGeCK files to. (Default: 'MAGECK_Files')
+* command_line_params: Optional list to load programming environment(s) to be able to run mageck tool (i.e. loading path, activating python environment). 
+* re_run: Boolean. Recreate and rerun the results instead of loading for subsequent analyses (Default: False)</p>
+<p><strong>Returns</strong>:</p>
+<ul>
+<li>mageck_res: A dict that contains a pandas dataframe for MAGeCK Score.</li>
+</ul>
+<h4 id="horlbeck-score">Horlbeck Score</h4>
+<p>Calculates Horlbeck score. Score files will created at the designated store location and save directory. </p>
+<pre><code>horlbeck_res = SLKB.run_horlbeck_score(curr_counts.copy(), curr_study = curr_study, curr_cl = curr_cl, store_loc = os.getcwd(), save_dir = 'HORLBECK_Files', do_preprocessing = True, re_run = False)
+</code></pre>
+<p><strong>Params</strong>:
+* curr_counts: Counts to calculate scores to.)
+* curr_study: String, name of study to analyze data for.
+* curr_cl: String, name of cell line to analyze data for.
+* store_loc: String: Directory to store the MAGeCK files to. (Default: current working directory)
+* save_dir: String: Folder name to store the MAGeCK files to. (Default: 'Horlbeck_Files')
+* do_preprocessing: Boolean. Run Horlbeck preprocessing (Default: True)
+* re_run: Boolean. Recreate and rerun the results instead of loading for subsequent analyses (Default: False)</p>
+<p><strong>Returns</strong>:</p>
+<ul>
+<li>horlbeck_res: A dict that contains a pandas dataframe for Horlbeck Score.</li>
+</ul>
+<h4 id="gemini-score">GEMINI Score</h4>
+<p>Calculates GEMINI Score. Score files will created at the designated store location and save directory. </p>
+<pre><code>gemini_res = run_gemini_score(curr_counts.copy(), curr_study = curr_study, curr_cl = curr_cl, store_loc = os.getcwd(), save_dir = 'GEMINI_Files', command_line_params = cmd_params, re_run = False)
+</code></pre>
+<p><strong>Params</strong>:
+* curr_counts: Counts to calculate scores to.)
+* curr_study: String, name of study to analyze data for.
+* curr_cl: String, name of cell line to analyze data for.
+* store_loc: String: Directory to store the MAGeCK files to. (Default: current working directory)
+* save_dir: String: Folder name to store the MAGeCK files to. (Default: 'GEMINI_Files')
+* command_line_params: Optional list to load programming environment(s) to be able to run GEMINI through R (i.e. loading path, activating R environment). 
+* re_run: Boolean. Recreate and rerun the results instead of loading for subsequent analyses (Default: False)</p>
+<p><strong>Returns</strong>:</p>
+<ul>
+<li>gemini_res: A dict that contains a pandas dataframe for GEMINI Score.</li>
+</ul>
+<h3 id="check_if_added_to_table">check_if_added_to_table</h3>
+<p>If running the scoring methods multiple times, the method may be useful in skipping over the computation if there are gene pair records already in the database.</p>
+<pre><code>SLKB.check_if_added_to_table(curr_counts, score_name, SLKB_engine)
+</code></pre>
+<p><strong>Params</strong>:</p>
+<ul>
+<li>curr_counts: Counts to calculate the scores to.</li>
+<li>score_name: Table to insert the scores to. Must be any of the 7 scoring table names:<ul>
+<li>HORLBECK_SCORE</li>
+<li>MEDIAN_B_SCORE</li>
+<li>MEDIAN_NB_SCORE</li>
+<li>GEMINI_SCORE</li>
+<li>MAGECK_SCORE</li>
+<li>SGRNA_DERIVED_B_SCORE</li>
+<li>SGRNA_DERIVED_NB_SCORE</li>
+</ul>
+</li>
+</ul>
+<p><strong>Returns</strong>:</p>
+<ul>
+<li>Boolean. True if records are inserted into the DB, False otherwise.</li>
+</ul>
+<h3 id="query_results_table">query_results_table</h3>
+<p>Obtain SL Scores from the specified scoring table.</p>
+<pre><code>result = SLKB.query_result_table(curr_counts, table_name, curr_study, curr_cl, engine_link)
+</code></pre>
+<p><strong>Params</strong>:</p>
+<ul>
+<li>curr_counts: Counts to obtain the scores from.</li>
+<li>table_name: Must be any of the 7 scoring table names:<ul>
+<li>HORLBECK_SCORE</li>
+<li>MEDIAN_B_SCORE</li>
+<li>MEDIAN_NB_SCORE</li>
+<li>GEMINI_SCORE</li>
+<li>MAGECK_SCORE</li>
+<li>SGRNA_DERIVED_B_SCORE</li>
+<li>SGRNA_DERIVED_NB_SCORE</li>
+</ul>
+</li>
+<li>curr_study: String, name of the study to obtain the results for.</li>
+<li>curr_cl: String, name of the cell line to obtain the results for.</li>
+<li>engine_link: SQLAlchemy connection for the database.</li>
+</ul>
+<p><strong>Returns</strong>:</p>
+<ul>
+<li>result: A pandas dataframe of the inserted results. Includes annotations for gene pair, study origin, and cell line origin.</li>
+</ul>
+<p>© Copyright 2023, The Ohio State University, College of Medicine, Department of Biomedical Informatics</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="index.html" class="btn btn-neutral float-left" title="SLKB Pipeline"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="Contact%20%26%20Reference.html" class="btn btn-neutral float-right" title="Contact & Reference">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/BirkanGokbag/SyntheticLethality-NewDB-Pipeline" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="index.html" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="Contact%20%26%20Reference.html" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script>var base_url = '.';</script>
+    <script src="js/theme_extra.js" defer></script>
+    <script src="js/theme.js" defer></script>
+      <script src="search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>
