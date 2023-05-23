@@ -58,9 +58,9 @@ Example:
 
 |sgRNA_guide_name|sgRNA_guide_sequence|sgRNA_guide_target|
 |:-:|:-:|:-:|
-|Gene1_sg1| CGCGC | Gene1 |
-|Gene1_sg2| CGTGC  |  Gene1 |
-|Gene2_sg1| CAAGC  |  Gene2 |
+|0Safe-safe-ACOC-204550.4522| GTGTATTTGGCTTCCAAAA | control |
+|0Safe-safe-ACOC-204550.4525| GCATGGCCTCCACTTGCAA  |  control |
+|AKT3-1| GTAAGGTAAATCCACATCTTG  |  AKT3 |
 
 </center>
 
@@ -68,45 +68,42 @@ Example:
 
 Counts file contains X columns. Make sure that your counts annotation matches with the prior sequence information.
 
-1. sgRNA_guide_1_name: Name of your sgRNA guide at first location
-2. sgRNA_guide_1_target: Target of your sgRNA guide at first location
-3. sgRNA_guide_2_name: Name of your sgRNA guide at second location
-4. sgRNA_guide_2_target: Target of your sgRNA guide at second location
+1. guide_1: Name of your sgRNA guide at first location
+2. gene_1: Target of your sgRNA guide at first location (CONTROL if targeting control)
+3. guide_2: Name of your sgRNA guide at second location
+4. gene_2: Target of your sgRNA guide at second location (CONTROL if targeting control)
 5. study_origin: Study identifier of the added data (i.e. PubmedID, MYCDKO)
 6. cell_line_origin: Cell line identifier of the added data (e.g. 22Rv1)
-7. replicate_names: Replicate names combined, separated by ';'
+7. study_conditions: Replicate names combined, separated by ';'
 8. count_replicates: sgRNA counts from each replicate combined, separated by ';'
 
 
 Example:
-<!-- <center> -->
 
-|sgRNA_guide_1_name|sgRNA_guide_1_target|sgRNA_guide_2_name|sgRNA_guide_2_target|study_origin|cell_line_origin|replicate_names|count_replicates|
+|guide_1|guide_2|gene_1|gene_2|count_replicates|cell_line_origin|study_conditions|study_origin|
 |:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
-|   |   |   |   |   |   |   |   |
-|   |   |   |   |   |   |   |   |
-|   |   |   |   |   |   |   |   |
+|0Safe-safe-ACOC-204550.4522|0Safe-safe-ACOC-204550.4522|0Safe-safe-ACOC|0Safe-safe-ACOC|22;17;36;43|22Rv1|T0_1;T0_2;T12_1;T12_2|36060092|
+|0Safe-safe-ACOC-204550.4522|0Safe-safe-ACOC-204550.4525|0Safe-safe-ACOC|0Safe-safe-ACOC|57;73;107;98|22Rv1|T0_1;T0_2;T12_1;T12_2|36060092|
+|0Safe-safe-ACOC-204550.4522|AKT3-1|0Safe-safe-ACOC|AKT3|47;45;68;85|22Rv1|T0_1;T0_2;T12_1;T12_2|36060092|
 
 #### Calculated SL Scores
 
 If you have calculated the gene level SL scores for your data already, you can add them here with the following columns. Otherwise, leave empty. 
 
-1. Gene_A
-2. Gene_B
+1. gene_1
+2. gene_2
 3. study_origin
 4. cell_line_origin
 5. SL_score
-6. SL_score_cutoff
-7. Stat_score
-8. stat_score_cutoff
+6. SL_score_cutoff (If NaN, no cutoff applied)
+7. statistical_score
+8. statistical_score_cutoff (If NaN, no cutoff applied)
 
 Example:
 
-|sgRNA_guide_name|sgRNA_guide_sequence|sgRNA_guide_target|
-|:-:|:-:|:-:|
-|Gene1_sg1| CGCGC | Gene1 |
-|Gene1_sg2| CGTGC  |  Gene1 |
-|Gene2_sg1| CAAGC  |  Gene2 |
+|gene_1|gene_2|study_origin|cell_line_origin|SL_score|SL_score_cutoff|statistical_score|statistical_score_cutoff|
+|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+|AKT3|AR|36060092|22Rv1|-0.977141|-0.361|NaN|NaN|
 
 <hr>
 
@@ -122,7 +119,7 @@ SLKB_engine = sqlalchemy.create_engine(db_engine)
 
 Following data preperation, the data is now ready to be processed. We will need to declare two additonal variables before calling the processing function:
 
-1. control_list: List of control targets. These need to be included at counts reference; **sgRNA_guide_1/2_name**
+1. control_list: List of control targets. These need to be included at counts reference; **gene_1, gene_2 names to use as controls **
 2. timepoint_list: A list of two elements; T0 replicates and TEnd replicates. Make sure that the replicate names align.
 
 Example:
@@ -134,7 +131,7 @@ study_controls = ['CONTROL']
 study_conditions = [['T0_rep1', 'T0_rep2', 'T0_rep3'],
                     ['TEnd_rep1', 'TEnd_rep2', 'TEnd_rep3']]
 
-db_inserts = prepare_study_for_export(sequence_ref = sequence_ref, 
+db_inserts = SLKB.prepare_study_for_export(sequence_ref = sequence_ref, 
                                                      counts_ref = counts_ref,
                                                      scores_ref = scores_ref,
                                                      study_controls = study_controls,
@@ -150,7 +147,7 @@ By default, control genes supplied in scores file are removed.
 Finally, data can be inserted to the database.
 
 ```
-insert_study_to_db(SLKB_engine, db_inserts)
+SLKB.insert_study_to_db(SLKB_engine, db_inserts)
 ```
 
 ### Calculating SL Scores and Inserting to Database
@@ -192,21 +189,21 @@ For all scores, files will be created in the process. You can specify the locati
 #### Median-B/NB Score
 
 ```
-if check_if_added_to_table(curr_counts.copy(), 'MEDIAN_NB_SCORE', SLKB_engine):
-    median_res = SLKB.yrun_median_scores(curr_counts.copy(), curr_study = curr_study, curr_cl = curr_cl, store_loc = os.getcwd(), save_dir = 'MEDIAN_Files')
-    add_table_to_db(curr_counts.copy(), median_res['MEDIAN_NB_SCORE'], 'MEDIAN_NB_SCORE', SLKB_engine)
+if check_if_added_to_table(curr_counts.copy(), 'median_nb_score', SLKB_engine):
+    median_res = SLKB.run_median_scores(curr_counts.copy(), curr_study = curr_study, curr_cl = curr_cl, store_loc = os.getcwd(), save_dir = 'MEDIAN_Files')
+    SLKB.add_table_to_db(curr_counts.copy(), median_res['MEDIAN_NB_SCORE'], 'median_nb_score', SLKB_engine)
     if median_res['MEDIAN_B_SCORE'] is not None:
-        add_table_to_db(curr_counts.copy(), median_res['MEDIAN_B_SCORE'], 'MEDIAN_B_SCORE', SLKB_engine)
+        SLKB.add_table_to_db(curr_counts.copy(), median_res['MEDIAN_B_SCORE'], 'median_b_score', SLKB_engine)
 ```
 
 #### sgRNA-Derived-B/NB Score
 
 ```
-if not check_if_added_to_table(curr_counts.copy(), 'SGRA_DERIVED_NB_SCORE', SLKB_engine):
+if not check_if_added_to_table(curr_counts.copy(), 'sgrna_derived_nb_score', SLKB_engine):
     sgRNA_res = SLKB.run_sgrna_scores(curr_counts.copy(), curr_study = curr_study, curr_cl = curr_cl, store_loc = os.getcwd(), save_dir = 'sgRNA-DERIVED_Files')
-    add_table_to_db(curr_counts.copy(), sgRNA_res['SGRA_DERIVED_NB_SCORE'], 'SGRA_DERIVED_NB_SCORE', SLKB_engine)
-    if sgRNA_res['SGRA_DERIVED_B_SCORE'] is not None:
-        add_table_to_db(curr_counts.copy(), sgRNA_res['SGRA_DERIVED_B_SCORE'], 'SGRA_DERIVED_B_SCORE', SLKB_engine)
+    SLKB.add_table_to_db(curr_counts.copy(), sgRNA_res['SGRNA_DERIVED_NB_SCORE'], 'sgrna_derived_nb_score', SLKB_engine)
+    if sgRNA_res['SGRNA_DERIVED_B_SCORE'] is not None:
+        SLKB.add_table_to_db(curr_counts.copy(), sgRNA_res['SGRNA_DERIVED_B_SCORE'], 'sgrna_derived_b_score', SLKB_engine)
 ```
 
 #### MAGeCK Score
@@ -217,9 +214,9 @@ MAGeCK is run through a script file at the designated location. If you need to l
 
 ```
 cmd_params = []
-if not check_if_added_to_table(curr_counts.copy(), 'MAGECK_SCORE', SLKB_engine):
+if not check_if_added_to_table(curr_counts.copy(), 'mageck_score', SLKB_engine):
     mageck_res = SLKB.run_mageck_score(curr_counts.copy(), curr_study = curr_study, curr_cl = curr_cl, store_loc = os.getcwd(), save_dir = 'MAGECK_Files', command_line_params = cmd_params,re_run = False)
-    add_table_to_db(curr_counts.copy(), mageck_res['MAGECK_SCORE'], 'MAGECK_SCORE', SLKB_engine)
+    SLKB.add_table_to_db(curr_counts.copy(), mageck_res['MAGECK_SCORE'], 'mageck_score', SLKB_engine)
         
 ```
 
@@ -228,9 +225,9 @@ if not check_if_added_to_table(curr_counts.copy(), 'MAGECK_SCORE', SLKB_engine):
 In Horlbeck score, files will be created in process. You can specify the location to save your files (default: current working directory). If you wish to re-run to store new results in its stead, set ```re_run``` to True.
 
 ```
-if not check_if_added_to_table(curr_counts.copy(), 'HORLBECK_SCORE', SLKB_engine):
+if not check_if_added_to_table(curr_counts.copy(), 'horlbeck_score', SLKB_engine):
     horlbeck_res = SLKB.run_horlbeck_score(curr_counts.copy(), curr_study = curr_study, curr_cl = curr_cl, store_loc = os.getcwd(), save_dir = 'HORLBECK_Files', do_preprocessing = True, re_run = False)
-    add_table_to_db(curr_counts.copy(), horlbeck_res['HORLBECK_SCORE'], 'HORLBECK_SCORE', SLKB_engine)
+    SLKB.add_table_to_db(curr_counts.copy(), horlbeck_res['HORLBECK_SCORE'], 'horlbeck_score', SLKB_engine)
 ```
 
 #### GEMINI Score
@@ -241,9 +238,9 @@ Similarly to MAGeCK, GEMINI is run through a script file at the designated locat
 
 ```
 cmd_params = ['module load R/4.1.0']
-if not check_if_added_to_table(curr_counts.copy(), 'GEMINI_SCORE', SLKB_engine):
+if not check_if_added_to_table(curr_counts.copy(), 'gemini_score', SLKB_engine):
     gemini_res = SLKB.run_gemini_score(curr_counts.copy(), curr_study = curr_study, curr_cl = curr_cl, store_loc = os.getcwd(), save_dir = 'GEMINI_Files', command_line_params = cmd_params, re_run = False)
-    add_table_to_db(curr_counts.copy(), gemini_res['GEMINI_SCORE'], 'GEMINI_SCORE', SLKB_engine)
+    SLKB.add_table_to_db(curr_counts.copy(), gemini_res['GEMINI_SCORE'], 'gemini_score', SLKB_engine)
 ```
 
 ### Query Results (For one table)
@@ -251,7 +248,7 @@ if not check_if_added_to_table(curr_counts.copy(), 'GEMINI_SCORE', SLKB_engine):
 Following the score calculations, the query is relatively easy. In this snippet of code, we will access the scores for one of the tables.
 
 ```
-curr_score = SLKB.query_result_table(curr_counts.copy(), 'median_b_score', curr_study, curr_cl, SLKB_engine)
+score = SLKB.query_result_table(curr_counts.copy(), 'median_b_score', curr_study, curr_cl, SLKB_engine)
 ```
 
 ### Query Results (For all tables)
@@ -265,4 +262,4 @@ all_scores = pd.read_sql_query(con=SLKB_engine.connect(),
 
 ### Further Analyses
 
-SLKB web application is available for download to help analyze your generated data. You can access the website at the following [link](https://slkb.osubmi.org/), and it's code at the [link](https://github.com/BirkanGokbag/SLKB-Analysis-Pipeline). For more details, check ```server.r``` within the web app.
+SLKB web application is available for download to help analyze your generated data. You can access the website at the following [link](https://slkb.osubmi.org/), and it's code at the [link](https://github.com/BirkanGokbag/SLKB-Analysis-Pipeline/blob/main/SLKB/files/SLKB_webapp.zip). To use user generated data, check ```server.r``` within the web app.

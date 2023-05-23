@@ -4,19 +4,13 @@ import numpy as np
 import pandas as pd
 import os
 import math
-from itertools import chain
 import pickle
 import sqlalchemy
 from sqlalchemy.orm import sessionmaker
 from scipy import optimize
 from scipy.stats import sem
 import subprocess
-import shlex
-import sqlite3
 import sqlalchemy
-
-from sqlalchemy.engine import Engine
-from sqlalchemy import event
 
 import pkg_resources
 PACKAGE_PATH = pkg_resources.resource_filename('SLKB', '/')
