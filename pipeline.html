@@ -124,7 +124,7 @@
     <li><a href="index.html" class="icon icon-home" alt="Docs"></a> &raquo;</li>
       <li>Pipeline</li>
     <li class="wy-breadcrumbs-aside">
-          <a href="https://github.com/BirkanGokbag/SyntheticLethality-NewDB-Pipeline/edit/master/docs/pipeline.md" class="icon icon-github"> Edit on GitHub</a>
+          <a href="https://github.com/BirkanGokbag/SLKB-Analysis-Pipeline/edit/master/docs/pipeline.md" class="icon icon-github"> Edit on GitHub</a>
     </li>
   </ul>
   <hr/>
@@ -186,19 +186,19 @@ SLKB.create_SLKB(engine = SLKB_engine, db_type = 'sqlite3') # or mysql
 </thead>
 <tbody>
 <tr>
-<td align="center">Gene1_sg1</td>
-<td align="center">CGCGC</td>
-<td align="center">Gene1</td>
+<td align="center">0Safe-safe-ACOC-204550.4522</td>
+<td align="center">GTGTATTTGGCTTCCAAAA</td>
+<td align="center">control</td>
 </tr>
 <tr>
-<td align="center">Gene1_sg2</td>
-<td align="center">CGTGC</td>
-<td align="center">Gene1</td>
+<td align="center">0Safe-safe-ACOC-204550.4525</td>
+<td align="center">GCATGGCCTCCACTTGCAA</td>
+<td align="center">control</td>
 </tr>
 <tr>
-<td align="center">Gene2_sg1</td>
-<td align="center">CAAGC</td>
-<td align="center">Gene2</td>
+<td align="center">AKT3-1</td>
+<td align="center">GTAAGGTAAATCCACATCTTG</td>
+<td align="center">AKT3</td>
 </tr>
 </tbody>
 </table>
@@ -206,100 +206,98 @@ SLKB.create_SLKB(engine = SLKB_engine, db_type = 'sqlite3') # or mysql
 <h4 id="dual-sgrna-counts">Dual sgRNA counts</h4>
 <p>Counts file contains X columns. Make sure that your counts annotation matches with the prior sequence information.</p>
 <ol>
-<li>sgRNA_guide_1_name: Name of your sgRNA guide at first location</li>
-<li>sgRNA_guide_1_target: Target of your sgRNA guide at first location</li>
-<li>sgRNA_guide_2_name: Name of your sgRNA guide at second location</li>
-<li>sgRNA_guide_2_target: Target of your sgRNA guide at second location</li>
+<li>guide_1: Name of your sgRNA guide at first location</li>
+<li>gene_1: Target of your sgRNA guide at first location (CONTROL if targeting control)</li>
+<li>guide_2: Name of your sgRNA guide at second location</li>
+<li>gene_2: Target of your sgRNA guide at second location (CONTROL if targeting control)</li>
 <li>study_origin: Study identifier of the added data (i.e. PubmedID, MYCDKO)</li>
 <li>cell_line_origin: Cell line identifier of the added data (e.g. 22Rv1)</li>
-<li>replicate_names: Replicate names combined, separated by ';'</li>
+<li>study_conditions: Replicate names combined, separated by ';'</li>
 <li>count_replicates: sgRNA counts from each replicate combined, separated by ';'</li>
 </ol>
 <p>Example:</p>
-<!-- <center> -->
-
 <table>
 <thead>
 <tr>
-<th align="center">sgRNA_guide_1_name</th>
-<th align="center">sgRNA_guide_1_target</th>
-<th align="center">sgRNA_guide_2_name</th>
-<th align="center">sgRNA_guide_2_target</th>
-<th align="center">study_origin</th>
-<th align="center">cell_line_origin</th>
-<th align="center">replicate_names</th>
+<th align="center">guide_1</th>
+<th align="center">guide_2</th>
+<th align="center">gene_1</th>
+<th align="center">gene_2</th>
 <th align="center">count_replicates</th>
+<th align="center">cell_line_origin</th>
+<th align="center">study_conditions</th>
+<th align="center">study_origin</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td align="center"></td>
-<td align="center"></td>
-<td align="center"></td>
-<td align="center"></td>
-<td align="center"></td>
-<td align="center"></td>
-<td align="center"></td>
-<td align="center"></td>
+<td align="center">0Safe-safe-ACOC-204550.4522</td>
+<td align="center">0Safe-safe-ACOC-204550.4522</td>
+<td align="center">0Safe-safe-ACOC</td>
+<td align="center">0Safe-safe-ACOC</td>
+<td align="center">22;17;36;43</td>
+<td align="center">22Rv1</td>
+<td align="center">T0_1;T0_2;T12_1;T12_2</td>
+<td align="center">36060092</td>
 </tr>
 <tr>
-<td align="center"></td>
-<td align="center"></td>
-<td align="center"></td>
-<td align="center"></td>
-<td align="center"></td>
-<td align="center"></td>
-<td align="center"></td>
-<td align="center"></td>
+<td align="center">0Safe-safe-ACOC-204550.4522</td>
+<td align="center">0Safe-safe-ACOC-204550.4525</td>
+<td align="center">0Safe-safe-ACOC</td>
+<td align="center">0Safe-safe-ACOC</td>
+<td align="center">57;73;107;98</td>
+<td align="center">22Rv1</td>
+<td align="center">T0_1;T0_2;T12_1;T12_2</td>
+<td align="center">36060092</td>
 </tr>
 <tr>
-<td align="center"></td>
-<td align="center"></td>
-<td align="center"></td>
-<td align="center"></td>
-<td align="center"></td>
-<td align="center"></td>
-<td align="center"></td>
-<td align="center"></td>
+<td align="center">0Safe-safe-ACOC-204550.4522</td>
+<td align="center">AKT3-1</td>
+<td align="center">0Safe-safe-ACOC</td>
+<td align="center">AKT3</td>
+<td align="center">47;45;68;85</td>
+<td align="center">22Rv1</td>
+<td align="center">T0_1;T0_2;T12_1;T12_2</td>
+<td align="center">36060092</td>
 </tr>
 </tbody>
 </table>
 <h4 id="calculated-sl-scores">Calculated SL Scores</h4>
 <p>If you have calculated the gene level SL scores for your data already, you can add them here with the following columns. Otherwise, leave empty. </p>
 <ol>
-<li>Gene_A</li>
-<li>Gene_B</li>
+<li>gene_1</li>
+<li>gene_2</li>
 <li>study_origin</li>
 <li>cell_line_origin</li>
 <li>SL_score</li>
-<li>SL_score_cutoff</li>
-<li>Stat_score</li>
-<li>stat_score_cutoff</li>
+<li>SL_score_cutoff (If NaN, no cutoff applied)</li>
+<li>statistical_score</li>
+<li>statistical_score_cutoff (If NaN, no cutoff applied)</li>
 </ol>
 <p>Example:</p>
 <table>
 <thead>
 <tr>
-<th align="center">sgRNA_guide_name</th>
-<th align="center">sgRNA_guide_sequence</th>
-<th align="center">sgRNA_guide_target</th>
+<th align="center">gene_1</th>
+<th align="center">gene_2</th>
+<th align="center">study_origin</th>
+<th align="center">cell_line_origin</th>
+<th align="center">SL_score</th>
+<th align="center">SL_score_cutoff</th>
+<th align="center">statistical_score</th>
+<th align="center">statistical_score_cutoff</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td align="center">Gene1_sg1</td>
-<td align="center">CGCGC</td>
-<td align="center">Gene1</td>
-</tr>
-<tr>
-<td align="center">Gene1_sg2</td>
-<td align="center">CGTGC</td>
-<td align="center">Gene1</td>
-</tr>
-<tr>
-<td align="center">Gene2_sg1</td>
-<td align="center">CAAGC</td>
-<td align="center">Gene2</td>
+<td align="center">AKT3</td>
+<td align="center">AR</td>
+<td align="center">36060092</td>
+<td align="center">22Rv1</td>
+<td align="center">-0.977141</td>
+<td align="center">-0.361</td>
+<td align="center">NaN</td>
+<td align="center">NaN</td>
 </tr>
 </tbody>
 </table>
@@ -312,7 +310,7 @@ SLKB.create_SLKB(engine = SLKB_engine, db_type = 'sqlite3') # or mysql
 <h3 id="inserting-data-to-database">Inserting Data to Database</h3>
 <p>Following data preperation, the data is now ready to be processed. We will need to declare two additonal variables before calling the processing function:</p>
 <ol>
-<li>control_list: List of control targets. These need to be included at counts reference; <strong>sgRNA_guide_1/2_name</strong></li>
+<li>control_list: List of control targets. These need to be included at counts reference; <strong>gene_1, gene_2 names to use as controls </strong></li>
 <li>timepoint_list: A list of two elements; T0 replicates and TEnd replicates. Make sure that the replicate names align.</li>
 </ol>
 <p>Example:</p>
@@ -323,7 +321,7 @@ study_controls = ['CONTROL']
 study_conditions = [['T0_rep1', 'T0_rep2', 'T0_rep3'],
                     ['TEnd_rep1', 'TEnd_rep2', 'TEnd_rep3']]
 
-db_inserts = prepare_study_for_export(sequence_ref = sequence_ref, 
+db_inserts = SLKB.prepare_study_for_export(sequence_ref = sequence_ref, 
                                                      counts_ref = counts_ref,
                                                      scores_ref = scores_ref,
                                                      study_controls = study_controls,
@@ -333,7 +331,7 @@ db_inserts = prepare_study_for_export(sequence_ref = sequence_ref,
 <p>If SL scores are supplied, by default, SL scores and statistical scores below the specified threshold are deemed as SL (column SL_or_not). Otherwise, they are not SL. You can customize this behavior by accessing the yielding db_inserts['scores_ref'].</p>
 <p>By default, control genes supplied in scores file are removed. </p>
 <p>Finally, data can be inserted to the database.</p>
-<pre><code>insert_study_to_db(SLKB_engine, db_inserts)
+<pre><code>SLKB.insert_study_to_db(SLKB_engine, db_inserts)
 </code></pre>
 <h3 id="calculating-sl-scores-and-inserting-to-database">Calculating SL Scores and Inserting to Database</h3>
 <p>Score calculation methods are independent of each other. They can be ran in any order. The details of each scoring method are located in the original paper. Each score is accompanied with two helper functions; checking whether scores have been added to the database and inserting scores to the database.</p>
@@ -365,45 +363,45 @@ scores.index.rename('gene_pair_id', inplace = True)
 </code></pre>
 <p>For all scores, files will be created in the process. You can specify the location to save your files (default: current working directory). This is done in order to enable quick loading to database for repeated analyses. GEMINI Score and MAGeCK score require file generation in order to run. In the event of updated counts file (e.g., adding additional counts), setting the parameter <code>re_run=TRUE</code> will restart the analysis from scratch. </p>
 <h4 id="median-bnb-score">Median-B/NB Score</h4>
-<pre><code>if check_if_added_to_table(curr_counts.copy(), 'MEDIAN_NB_SCORE', SLKB_engine):
-    median_res = SLKB.yrun_median_scores(curr_counts.copy(), curr_study = curr_study, curr_cl = curr_cl, store_loc = os.getcwd(), save_dir = 'MEDIAN_Files')
-    add_table_to_db(curr_counts.copy(), median_res['MEDIAN_NB_SCORE'], 'MEDIAN_NB_SCORE', SLKB_engine)
+<pre><code>if check_if_added_to_table(curr_counts.copy(), 'median_nb_score', SLKB_engine):
+    median_res = SLKB.run_median_scores(curr_counts.copy(), curr_study = curr_study, curr_cl = curr_cl, store_loc = os.getcwd(), save_dir = 'MEDIAN_Files')
+    SLKB.add_table_to_db(curr_counts.copy(), median_res['MEDIAN_NB_SCORE'], 'median_nb_score', SLKB_engine)
     if median_res['MEDIAN_B_SCORE'] is not None:
-        add_table_to_db(curr_counts.copy(), median_res['MEDIAN_B_SCORE'], 'MEDIAN_B_SCORE', SLKB_engine)
+        SLKB.add_table_to_db(curr_counts.copy(), median_res['MEDIAN_B_SCORE'], 'median_b_score', SLKB_engine)
 </code></pre>
 <h4 id="sgrna-derived-bnb-score">sgRNA-Derived-B/NB Score</h4>
-<pre><code>if not check_if_added_to_table(curr_counts.copy(), 'SGRA_DERIVED_NB_SCORE', SLKB_engine):
+<pre><code>if not check_if_added_to_table(curr_counts.copy(), 'sgrna_derived_nb_score', SLKB_engine):
     sgRNA_res = SLKB.run_sgrna_scores(curr_counts.copy(), curr_study = curr_study, curr_cl = curr_cl, store_loc = os.getcwd(), save_dir = 'sgRNA-DERIVED_Files')
-    add_table_to_db(curr_counts.copy(), sgRNA_res['SGRA_DERIVED_NB_SCORE'], 'SGRA_DERIVED_NB_SCORE', SLKB_engine)
-    if sgRNA_res['SGRA_DERIVED_B_SCORE'] is not None:
-        add_table_to_db(curr_counts.copy(), sgRNA_res['SGRA_DERIVED_B_SCORE'], 'SGRA_DERIVED_B_SCORE', SLKB_engine)
+    SLKB.add_table_to_db(curr_counts.copy(), sgRNA_res['SGRNA_DERIVED_NB_SCORE'], 'sgrna_derived_nb_score', SLKB_engine)
+    if sgRNA_res['SGRNA_DERIVED_B_SCORE'] is not None:
+        SLKB.add_table_to_db(curr_counts.copy(), sgRNA_res['SGRNA_DERIVED_B_SCORE'], 'sgrna_derived_b_score', SLKB_engine)
 </code></pre>
 <h4 id="mageck-score">MAGeCK Score</h4>
 <p>In MAGeCK score, files will be created in process. You can specify the location to save your files (default: current working directory). If you wish to re-run to store new results in its stead, set <code>re_run</code> to True.</p>
 <p>MAGeCK is run through a script file at the designated location. If you need to load in any packages or set path to your mageck installation, please supply them to cmd_params.</p>
 <pre><code>cmd_params = []
-if not check_if_added_to_table(curr_counts.copy(), 'MAGECK_SCORE', SLKB_engine):
+if not check_if_added_to_table(curr_counts.copy(), 'mageck_score', SLKB_engine):
     mageck_res = SLKB.run_mageck_score(curr_counts.copy(), curr_study = curr_study, curr_cl = curr_cl, store_loc = os.getcwd(), save_dir = 'MAGECK_Files', command_line_params = cmd_params,re_run = False)
-    add_table_to_db(curr_counts.copy(), mageck_res['MAGECK_SCORE'], 'MAGECK_SCORE', SLKB_engine)
+    SLKB.add_table_to_db(curr_counts.copy(), mageck_res['MAGECK_SCORE'], 'mageck_score', SLKB_engine)
 
 </code></pre>
 <h4 id="horlbeck-score">Horlbeck Score</h4>
 <p>In Horlbeck score, files will be created in process. You can specify the location to save your files (default: current working directory). If you wish to re-run to store new results in its stead, set <code>re_run</code> to True.</p>
-<pre><code>if not check_if_added_to_table(curr_counts.copy(), 'HORLBECK_SCORE', SLKB_engine):
+<pre><code>if not check_if_added_to_table(curr_counts.copy(), 'horlbeck_score', SLKB_engine):
     horlbeck_res = SLKB.run_horlbeck_score(curr_counts.copy(), curr_study = curr_study, curr_cl = curr_cl, store_loc = os.getcwd(), save_dir = 'HORLBECK_Files', do_preprocessing = True, re_run = False)
-    add_table_to_db(curr_counts.copy(), horlbeck_res['HORLBECK_SCORE'], 'HORLBECK_SCORE', SLKB_engine)
+    SLKB.add_table_to_db(curr_counts.copy(), horlbeck_res['HORLBECK_SCORE'], 'horlbeck_score', SLKB_engine)
 </code></pre>
 <h4 id="gemini-score">GEMINI Score</h4>
 <p>In GEMINI score, files will be created in process. You can specify the location to save your files (default: current working directory). Scores will be stored following GEMINI analysis for quick inserts to the database. If you wish to re-run to store new results in its stead, set <code>re_run</code> to True.</p>
 <p>Similarly to MAGeCK, GEMINI is run through a script file at the designated location. If you need to load in any packages or set path to your mageck installation, please supply them to cmd_params.</p>
 <pre><code>cmd_params = ['module load R/4.1.0']
-if not check_if_added_to_table(curr_counts.copy(), 'GEMINI_SCORE', SLKB_engine):
+if not check_if_added_to_table(curr_counts.copy(), 'gemini_score', SLKB_engine):
     gemini_res = SLKB.run_gemini_score(curr_counts.copy(), curr_study = curr_study, curr_cl = curr_cl, store_loc = os.getcwd(), save_dir = 'GEMINI_Files', command_line_params = cmd_params, re_run = False)
-    add_table_to_db(curr_counts.copy(), gemini_res['GEMINI_SCORE'], 'GEMINI_SCORE', SLKB_engine)
+    SLKB.add_table_to_db(curr_counts.copy(), gemini_res['GEMINI_SCORE'], 'gemini_score', SLKB_engine)
 </code></pre>
 <h3 id="query-results-for-one-table">Query Results (For one table)</h3>
 <p>Following the score calculations, the query is relatively easy. In this snippet of code, we will access the scores for one of the tables.</p>
-<pre><code>curr_score = SLKB.query_result_table(curr_counts.copy(), 'median_b_score', curr_study, curr_cl, SLKB_engine)
+<pre><code>score = SLKB.query_result_table(curr_counts.copy(), 'median_b_score', curr_study, curr_cl, SLKB_engine)
 </code></pre>
 <h3 id="query-results-for-all-tables">Query Results (For all tables)</h3>
 <p>Here, we will query all scores using the view within the database.</p>
@@ -411,7 +409,7 @@ if not check_if_added_to_table(curr_counts.copy(), 'GEMINI_SCORE', SLKB_engine):
                               sql=sqlalchemy.text('SELECT * from calculated_sl_table'))
 </code></pre>
 <h3 id="further-analyses">Further Analyses</h3>
-<p>SLKB web application is available for download to help analyze your generated data. You can access the website at the following <a href="https://slkb.osubmi.org/">link</a>, and it's code at the <a href="https://github.com/BirkanGokbag/SLKB-Analysis-Pipeline">link</a>. For more details, check <code>server.r</code> within the web app.</p>
+<p>SLKB web application is available for download to help analyze your generated data. You can access the website at the following <a href="https://slkb.osubmi.org/">link</a>, and it's code at the <a href="https://github.com/BirkanGokbag/SLKB-Analysis-Pipeline/blob/main/SLKB/files/SLKB_webapp.zip">link</a>. To use user generated data, check <code>server.r</code> within the web app.</p>
               
             </div>
           </div><footer>
@@ -440,7 +438,7 @@ if not check_if_added_to_table(curr_counts.copy(), 'GEMINI_SCORE', SLKB_engine):
   <span class="rst-current-version" data-toggle="rst-current-version">
     
         <span>
-          <a href="https://github.com/BirkanGokbag/SyntheticLethality-NewDB-Pipeline" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+          <a href="https://github.com/BirkanGokbag/SLKB-Analysis-Pipeline/" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
         </span>
     
     
