@@ -242,13 +242,13 @@ result = SLKB.query_result_table(curr_counts, table_name, curr_study, curr_cl, e
 
 * curr_counts: Counts to obtain the scores from.
 * table_name: Must be any of the 7 scoring table names:
-    * HORLBECK_SCORE
-    * MEDIAN_B_SCORE
-    * MEDIAN_NB_SCORE
-    * GEMINI_SCORE
-    * MAGECK_SCORE
-    * SGRNA_DERIVED_B_SCORE
-    * SGRNA_DERIVED_NB_SCORE
+    * horlbeck_score
+    * median_b_score
+    * median_nb_score
+    * sgrna_derived_b_score
+    * sgrna_derived_nb_score
+    * gemini_score
+    * mageck_score
 * curr_study: String, name of the study to obtain the results for.
 * curr_cl: String, name of the cell line to obtain the results for.
 * engine_link: SQLAlchemy connection for the database.
