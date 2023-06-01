@@ -47,7 +47,11 @@
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#using-slkb">Using SLKB</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#database-design">Database Design</a>
+    <li class="toctree-l2"><a class="reference internal" href="#database-schema">Database Schema</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#accessible-tables">Accessible Tables</a>
+    </li>
+        </ul>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#calculated-scores-table">Calculated Scores Table</a>
     </li>
@@ -111,8 +115,27 @@
 <p>Following SLKB pipeline, yielding results can be loaded within SLKB web app for full experience.</p>
 <h2 id="using-slkb">Using SLKB</h2>
 <p>Users can get started through the <a href="https://github.com/BirkanGokbag/SLKB-Analysis-Pipeline/blob/main/SLKB/files/pipeline.ipynb">shared jupyter notebook file</a>. Pipeline with it's full details can be browsed within the <a href="pipeline.html">documentation</a>.</p>
-<h2 id="database-design">Database Design</h2>
+<h2 id="database-schema">Database Schema</h2>
 <p><img alt="Schema" src="images/DB.png" /></p>
+<h3 id="accessible-tables">Accessible Tables</h3>
+<p>The schema has the following tables for access:</p>
+<ul>
+<li>cdko_experiment_design</li>
+<li>cdko_original_sl_results</li>
+<li>cdko_sgrna_counts</li>
+<li>horlbeck_score</li>
+<li>median_b_score</li>
+<li>median_nb_score</li>
+<li>sgrna_derived_b_score</li>
+<li>sgrna_derived_nb_score</li>
+<li>gemini_score</li>
+<li>mageck_score</li>
+</ul>
+<p>Additionally, two views are available:</p>
+<ul>
+<li>joined_counts: Join of counts table with experiment_design table</li>
+<li>calculated_sl_table: Join of all scoring tables and gene pair information</li>
+</ul>
 <h2 id="calculated-scores-table">Calculated Scores Table</h2>
 <p><img alt="Scores" src="images/Calculation.png" /></p>
 <h2 id="interactive-website">Interactive Website</h2>
@@ -168,5 +191,5 @@
 
 <!--
 MkDocs version : 1.4.2
-Build Date UTC : 2023-05-23 18:39:37.492284+00:00
+Build Date UTC : 2023-06-01 16:23:16.858239+00:00
 -->
