@@ -259,5 +259,3 @@ result = SLKB.query_result_table(curr_counts, table_name, curr_study, curr_cl, e
 **Returns**:
 
 * result: A pandas dataframe of the inserted results. Includes annotations for gene pair, study origin, and cell line origin.
-
-© Copyright 2023, The Ohio State University, College of Medicine, Department of Biomedical Informatics
