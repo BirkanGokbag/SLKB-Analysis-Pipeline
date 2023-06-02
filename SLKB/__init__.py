@@ -97,27 +97,27 @@ def create_placeholder_scores(curr_counts, sequence_ref):
     # we should add genes to the KB that can later be modified following scoring
     
     # first, set the controls so they can be removed
-    curr_counts.loc[curr_counts['Guide 1'].isin(sequence_ref.loc[sequence_ref['sgRNA_target_name'] == 'control', 'sgRNA_guide_name'].values), 'Gene 1'] = 'CONTROL'
-    curr_counts.loc[curr_counts['Guide 2'].isin(sequence_ref.loc[sequence_ref['sgRNA_target_name'] == 'control', 'sgRNA_guide_name'].values), 'Gene 2'] = 'CONTROL'
+    curr_counts.loc[curr_counts['guide_1'].isin(sequence_ref.loc[sequence_ref['sgRNA_target_name'] == 'control', 'sgRNA_guide_name'].values), 'Gene 1'] = 'CONTROL'
+    curr_counts.loc[curr_counts['guide_2'].isin(sequence_ref.loc[sequence_ref['sgRNA_target_name'] == 'control', 'sgRNA_guide_name'].values), 'Gene 2'] = 'CONTROL'
 
-    idx = (curr_counts['Gene 1'] == 'CONTROL') | (curr_counts['Gene 2'] == 'CONTROL')
+    idx = (curr_counts['gene_1'] == 'CONTROL') | (curr_counts['gene_2'] == 'CONTROL')
     # remove them
     curr_counts = curr_counts[~idx]
 
     # add sorted genes so they can be removed
-    curr_counts['sorted_genes'] = ['|'.join(sorted([curr_counts['Gene 1'].iloc[i], curr_counts['Gene 2'].iloc[i]])) for i in range(curr_counts.shape[0])]
-    curr_counts.drop_duplicates(subset = ['sorted_genes', 'Cell Line'], keep = 'first', inplace = True)
+    curr_counts['sorted_genes'] = ['|'.join(sorted([curr_counts['gene_1'].iloc[i], curr_counts['gene_2'].iloc[i]])) for i in range(curr_counts.shape[0])]
+    curr_counts.drop_duplicates(subset = ['sorted_genes', 'cell_line_origin'], keep = 'first', inplace = True)
 
     # drop the same genes as well
-    curr_counts = curr_counts.loc[curr_counts['Gene 1'] != curr_counts['Gene 2']]
+    curr_counts = curr_counts.loc[curr_counts['gene_1'] != curr_counts['gene_2']]
     curr_counts.reset_index(drop = True, inplace = True)
 
     # proceed to create the GI and return
-    curr_GI = pd.DataFrame(columns = ["Gene_A", "Gene_B", "Study_Source", "Cell_Line", "GI_Score", "GI_Cutoff", "Stat_Score", "Stat_Cutoff"])
-    curr_GI["Gene_A"] = curr_counts['Gene 1'].values
-    curr_GI["Gene_B"] = curr_counts['Gene 2'].values
-    curr_GI["Study_Source"] = [curr_counts['Study'].iloc[0]] * curr_GI.shape[0]
-    curr_GI["Cell_Line"] = curr_counts['Cell Line'].values
+    curr_GI = pd.DataFrame(columns = ["gene_1", "gene_2", "study_origin", "cell_line_origin", "SL_score", "SL_score_cutoff", "statistical_score", "statistical_score_cutoff"])
+    curr_GI["gene_1"] = curr_counts['gene_1'].values
+    curr_GI["gene_2"] = curr_counts['gene_2'].values
+    curr_GI["study_origin"] = [curr_counts['study_origin'].iloc[0]] * curr_GI.shape[0]
+    curr_GI["cell_line_origin"] = curr_counts['cell_line_origin'].values
     curr_GI = curr_GI.fillna(0)
     
     return(curr_GI)
