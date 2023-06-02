@@ -21,7 +21,7 @@ shutil.which('mageck') ## should yield MAGeCK location
 
 ### SLKB Pipeline Template
 
-A template has been prepared that follows through the guide's steps. Feel free to install it from its GitHub [link](../SLKB/files/pipeline.ipynb) following SLKB package's installation. 
+A template has been prepared that follows through the guide's steps. Feel free to install it from its GitHub [link](https://github.com/BirkanGokbag/SLKB-Analysis-Pipeline/blob/main/SLKB/files/pipeline.ipynb) following SLKB package's installation. 
 ### Starting with a local database (SLKB Schema)
 
 First, we start with creating a local database to store the CRISPR synthetic lethality data at hand. SLKB supports mysql and sqlite3 at this time. A URL object is passed that will then create the database via stored schemas.
