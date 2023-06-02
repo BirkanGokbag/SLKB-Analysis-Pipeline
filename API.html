@@ -217,8 +217,8 @@
 <li>curr_cl: String, name of cell line to analyze data for.</li>
 <li>full_normalization: Whether to normalize counts across the whole sample or according to target type (Default: False)</li>
 <li>re_run: Boolean. Recreate and rerun the results instead of loading for subsequent analyses (Default: False)</li>
-<li>store_loc: String: Directory to store the MAGeCK files to. (Default: current working directory)</li>
-<li>save_dir: String: Folder name to store the MAGeCK files to. (Default: 'MEDIAN_Files')</li>
+<li>store_loc: String: Directory to store the Median files to. (Default: current working directory)</li>
+<li>save_dir: String: Folder name to store the Median files to. (Default: 'MEDIAN_Files')</li>
 </ul>
 <p><strong>Returns</strong>:</p>
 <ul>
@@ -234,8 +234,8 @@
 <li>curr_cl: String, name of cell line to analyze data for.</li>
 <li>full_normalization: Whether to normalize counts across the whole sample or according to target type (Default: False)</li>
 <li>re_run: Boolean. Recreate and rerun the results instead of loading for subsequent analyses (Default: False)</li>
-<li>store_loc: String: Directory to store the MAGeCK files to. (Default: current working directory)</li>
-<li>save_dir: String: Folder name to store the MAGeCK files to. (Default: 'sgRNA-DERIVED_Files')</li>
+<li>store_loc: String: Directory to store the sgRNA-Derived files to. (Default: current working directory)</li>
+<li>save_dir: String: Folder name to store the sgRNA-Derived files to. (Default: 'sgRNA-DERIVED_Files')</li>
 </ul>
 <p><strong>Returns</strong>:</p>
 <ul>
@@ -245,14 +245,16 @@
 <p>Calculates MAGeCK Score. Score files will created at the designated store location and save directory. </p>
 <pre><code>mageck_res = SLKB.run_mageck_score(curr_counts.copy(), curr_study, curr_cl, store_loc = os.getcwd(), save_dir = 'MAGECK_Files', command_line_params = [],re_run = False)   
 </code></pre>
-<p><strong>Params</strong>:
-* curr_counts: Counts to calculate scores to.)
-* curr_study: String, name of study to analyze data for.
-* curr_cl: String, name of cell line to analyze data for.
-* store_loc: String: Directory to store the MAGeCK files to. (Default: current working directory)
-* save_dir: String: Folder name to store the MAGeCK files to. (Default: 'MAGECK_Files')
-* command_line_params: Optional list to load programming environment(s) to be able to run mageck tool (i.e. loading path, activating python environment). 
-* re_run: Boolean. Recreate and rerun the results instead of loading for subsequent analyses (Default: False)</p>
+<p><strong>Params</strong>:</p>
+<ul>
+<li>curr_counts: Counts to calculate scores to.)</li>
+<li>curr_study: String, name of study to analyze data for.</li>
+<li>curr_cl: String, name of cell line to analyze data for.</li>
+<li>store_loc: String: Directory to store the MAGeCK files to. (Default: current working directory)</li>
+<li>save_dir: String: Folder name to store the MAGeCK files to. (Default: 'MAGECK_Files')</li>
+<li>command_line_params: Optional list to load programming environment(s) to be able to run mageck tool (i.e. loading path, activating python environment). </li>
+<li>re_run: Boolean. Recreate and rerun the results instead of loading for subsequent analyses (Default: False)</li>
+</ul>
 <p><strong>Returns</strong>:</p>
 <ul>
 <li>mageck_res: A dict that contains a pandas dataframe for MAGeCK Score.</li>
@@ -261,14 +263,16 @@
 <p>Calculates Horlbeck score. Score files will created at the designated store location and save directory. </p>
 <pre><code>horlbeck_res = SLKB.run_horlbeck_score(curr_counts.copy(), curr_study = curr_study, curr_cl = curr_cl, store_loc = os.getcwd(), save_dir = 'HORLBECK_Files', do_preprocessing = True, re_run = False)
 </code></pre>
-<p><strong>Params</strong>:
-* curr_counts: Counts to calculate scores to.)
-* curr_study: String, name of study to analyze data for.
-* curr_cl: String, name of cell line to analyze data for.
-* store_loc: String: Directory to store the MAGeCK files to. (Default: current working directory)
-* save_dir: String: Folder name to store the MAGeCK files to. (Default: 'Horlbeck_Files')
-* do_preprocessing: Boolean. Run Horlbeck preprocessing (Default: True)
-* re_run: Boolean. Recreate and rerun the results instead of loading for subsequent analyses (Default: False)</p>
+<p><strong>Params</strong>:</p>
+<ul>
+<li>curr_counts: Counts to calculate scores to.)</li>
+<li>curr_study: String, name of study to analyze data for.</li>
+<li>curr_cl: String, name of cell line to analyze data for.</li>
+<li>store_loc: String: Directory to store the Horlbeck files to. (Default: current working directory)</li>
+<li>save_dir: String: Folder name to store the Horlbeck files to. (Default: 'Horlbeck_Files')</li>
+<li>do_preprocessing: Boolean. Run Horlbeck preprocessing (Default: True)</li>
+<li>re_run: Boolean. Recreate and rerun the results instead of loading for subsequent analyses (Default: False)</li>
+</ul>
 <p><strong>Returns</strong>:</p>
 <ul>
 <li>horlbeck_res: A dict that contains a pandas dataframe for Horlbeck Score.</li>
@@ -277,14 +281,16 @@
 <p>Calculates GEMINI Score. Score files will created at the designated store location and save directory. </p>
 <pre><code>gemini_res = run_gemini_score(curr_counts.copy(), curr_study = curr_study, curr_cl = curr_cl, store_loc = os.getcwd(), save_dir = 'GEMINI_Files', command_line_params = cmd_params, re_run = False)
 </code></pre>
-<p><strong>Params</strong>:
-* curr_counts: Counts to calculate scores to.)
-* curr_study: String, name of study to analyze data for.
-* curr_cl: String, name of cell line to analyze data for.
-* store_loc: String: Directory to store the MAGeCK files to. (Default: current working directory)
-* save_dir: String: Folder name to store the MAGeCK files to. (Default: 'GEMINI_Files')
-* command_line_params: Optional list to load programming environment(s) to be able to run GEMINI through R (i.e. loading path, activating R environment). 
-* re_run: Boolean. Recreate and rerun the results instead of loading for subsequent analyses (Default: False)</p>
+<p><strong>Params</strong>:</p>
+<ul>
+<li>curr_counts: Counts to calculate scores to.)</li>
+<li>curr_study: String, name of study to analyze data for.</li>
+<li>curr_cl: String, name of cell line to analyze data for.</li>
+<li>store_loc: String: Directory to store the GEMINI files to. (Default: current working directory)</li>
+<li>save_dir: String: Folder name to store the GEMINI files to. (Default: 'GEMINI_Files')</li>
+<li>command_line_params: Optional list to load programming environment(s) to be able to run GEMINI through R (i.e. loading path, activating R environment). </li>
+<li>re_run: Boolean. Recreate and rerun the results instead of loading for subsequent analyses (Default: False)</li>
+</ul>
 <p><strong>Returns</strong>:</p>
 <ul>
 <li>gemini_res: A dict that contains a pandas dataframe for GEMINI Score.</li>
@@ -297,13 +303,13 @@
 <ul>
 <li>curr_counts: Counts to calculate the scores to.</li>
 <li>score_name: Table to insert the scores to. Must be any of the 7 scoring table names:<ul>
-<li>HORLBECK_SCORE</li>
-<li>MEDIAN_B_SCORE</li>
-<li>MEDIAN_NB_SCORE</li>
-<li>GEMINI_SCORE</li>
-<li>MAGECK_SCORE</li>
-<li>SGRNA_DERIVED_B_SCORE</li>
-<li>SGRNA_DERIVED_NB_SCORE</li>
+<li>horlbeck_score</li>
+<li>median_b_score</li>
+<li>median_nb_score</li>
+<li>sgrna_derived_b_score</li>
+<li>sgrna_derived_nb_score</li>
+<li>gemini_score</li>
+<li>mageck_score</li>
 </ul>
 </li>
 </ul>
