@@ -189,7 +189,7 @@ For all scores, files will be created in the process. You can specify the locati
 #### Median-B/NB Score
 
 ```
-if check_if_added_to_table(curr_counts.copy(), 'median_nb_score', SLKB_engine):
+if SLKB.check_if_added_to_table(curr_counts.copy(), 'median_nb_score', SLKB_engine):
     median_res = SLKB.run_median_scores(curr_counts.copy(), curr_study = curr_study, curr_cl = curr_cl, store_loc = os.getcwd(), save_dir = 'MEDIAN_Files')
     SLKB.add_table_to_db(curr_counts.copy(), median_res['MEDIAN_NB_SCORE'], 'median_nb_score', SLKB_engine)
     if median_res['MEDIAN_B_SCORE'] is not None:
@@ -199,7 +199,7 @@ if check_if_added_to_table(curr_counts.copy(), 'median_nb_score', SLKB_engine):
 #### sgRNA-Derived-B/NB Score
 
 ```
-if not check_if_added_to_table(curr_counts.copy(), 'sgrna_derived_nb_score', SLKB_engine):
+if not SLKB.check_if_added_to_table(curr_counts.copy(), 'sgrna_derived_nb_score', SLKB_engine):
     sgRNA_res = SLKB.run_sgrna_scores(curr_counts.copy(), curr_study = curr_study, curr_cl = curr_cl, store_loc = os.getcwd(), save_dir = 'sgRNA-DERIVED_Files')
     SLKB.add_table_to_db(curr_counts.copy(), sgRNA_res['SGRNA_DERIVED_NB_SCORE'], 'sgrna_derived_nb_score', SLKB_engine)
     if sgRNA_res['SGRNA_DERIVED_B_SCORE'] is not None:
@@ -214,7 +214,7 @@ MAGeCK is run through a script file at the designated location. If you need to l
 
 ```
 cmd_params = []
-if not check_if_added_to_table(curr_counts.copy(), 'mageck_score', SLKB_engine):
+if not SLKB.check_if_added_to_table(curr_counts.copy(), 'mageck_score', SLKB_engine):
     mageck_res = SLKB.run_mageck_score(curr_counts.copy(), curr_study = curr_study, curr_cl = curr_cl, store_loc = os.getcwd(), save_dir = 'MAGECK_Files', command_line_params = cmd_params,re_run = False)
     SLKB.add_table_to_db(curr_counts.copy(), mageck_res['MAGECK_SCORE'], 'mageck_score', SLKB_engine)
         
@@ -225,7 +225,7 @@ if not check_if_added_to_table(curr_counts.copy(), 'mageck_score', SLKB_engine):
 In Horlbeck score, files will be created in process. You can specify the location to save your files (default: current working directory). If you wish to re-run to store new results in its stead, set ```re_run``` to True.
 
 ```
-if not check_if_added_to_table(curr_counts.copy(), 'horlbeck_score', SLKB_engine):
+if not SLKB.check_if_added_to_table(curr_counts.copy(), 'horlbeck_score', SLKB_engine):
     horlbeck_res = SLKB.run_horlbeck_score(curr_counts.copy(), curr_study = curr_study, curr_cl = curr_cl, store_loc = os.getcwd(), save_dir = 'HORLBECK_Files', do_preprocessing = True, re_run = False)
     SLKB.add_table_to_db(curr_counts.copy(), horlbeck_res['HORLBECK_SCORE'], 'horlbeck_score', SLKB_engine)
 ```
@@ -238,7 +238,7 @@ Similarly to MAGeCK, GEMINI is run through a script file at the designated locat
 
 ```
 cmd_params = ['module load R/4.1.0']
-if not check_if_added_to_table(curr_counts.copy(), 'gemini_score', SLKB_engine):
+if not SLKB.check_if_added_to_table(curr_counts.copy(), 'gemini_score', SLKB_engine):
     gemini_res = SLKB.run_gemini_score(curr_counts.copy(), curr_study = curr_study, curr_cl = curr_cl, store_loc = os.getcwd(), save_dir = 'GEMINI_Files', command_line_params = cmd_params, re_run = False)
     SLKB.add_table_to_db(curr_counts.copy(), gemini_res['GEMINI_SCORE'], 'gemini_score', SLKB_engine)
 ```

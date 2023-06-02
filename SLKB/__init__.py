@@ -10,7 +10,6 @@ from sqlalchemy.orm import sessionmaker
 from scipy import optimize
 from scipy.stats import sem
 import subprocess
-import sqlalchemy
 
 import pkg_resources
 PACKAGE_PATH = pkg_resources.resource_filename('SLKB', '/')
@@ -980,8 +979,8 @@ def run_median_scores(curr_counts, curr_study, curr_cl, full_normalization = Fal
     * curr_cl: String, name of cell line to analyze data for.
     * full_normalization: Whether to normalize counts across the whole sample or according to target type (Default: False)
     * re_run: Boolean. Recreate and rerun the results instead of loading for subsequent analyses (Default: False)
-    * store_loc: String: Directory to store the MAGeCK files to. (Default: current working directory)
-    * save_dir: String: Folder name to store the MAGeCK files to. (Default: 'MEDIAN_Files')
+    * store_loc: String: Directory to store the Median files to. (Default: current working directory)
+    * save_dir: String: Folder name to store the Median files to. (Default: 'MEDIAN_Files')
 
     **Returns**:
 
@@ -1223,8 +1222,8 @@ def run_sgrna_scores(curr_counts, curr_study, curr_cl, full_normalization = Fals
     * curr_cl: String, name of cell line to analyze data for.
     * full_normalization: Whether to normalize counts across the whole sample or according to target type (Default: False)
     * re_run: Boolean. Recreate and rerun the results instead of loading for subsequent analyses (Default: False)
-    * store_loc: String: Directory to store the MAGeCK files to. (Default: current working directory)
-    * save_dir: String: Folder name to store the MAGeCK files to. (Default: 'sgRNA-DERIVED_Files')
+    * store_loc: String: Directory to store the sgRNA-Derived files to. (Default: current working directory)
+    * save_dir: String: Folder name to store the sgRNA-Derived files to. (Default: 'sgRNA-DERIVED_Files')
 
 
     **Returns**:
@@ -1571,12 +1570,12 @@ def run_mageck_score(curr_counts, curr_study, curr_cl, store_loc = os.getcwd(), 
 
     fp.write("cd \"" + os.path.join(os.getcwd(), save_loc) + "\"\n")
 
-    command = "mageck test -k counts.csv -t \"" + ','.join(t_end_col_locs) + "\" --normcounts-to-file -n out --pdf-report"
+    mageck_control_loc = os.path.join(PACKAGE_PATH, 'files', 'mageck_control.txt')
     if 'Control' in set(curr_counts['target_type']):
         if paired:
-            command = "mageck test -k counts.csv -t \"" + ','.join(t_end_col_locs) + "\" --paired --norm-method control --control-gene CONTROL|CONTROL --normcounts-to-file -n out --pdf-report"
+            command = "mageck test -k counts.csv -t \"" + ','.join(t_end_col_locs) + "\" --paired --norm-method control --control-gene " + mageck_control_loc + " --normcounts-to-file -n out --pdf-report"
         else:
-            command = "mageck test -k counts.csv -t \"" + ','.join(t_end_col_locs) + "\" --norm-method control --control-gene CONTROL|CONTROL --normcounts-to-file -n out --pdf-report"
+            command = "mageck test -k counts.csv -t \"" + ','.join(t_end_col_locs) + "\" --norm-method control --control-gene " + mageck_control_loc + " --normcounts-to-file -n out --pdf-report"
 
     fp.write(command)
     fp.close()
@@ -1703,8 +1702,8 @@ def run_gemini_score(curr_counts, curr_study, curr_cl, store_loc = os.getcwd(), 
     * curr_counts: Counts to calculate scores to.)
     * curr_study: String, name of study to analyze data for.
     * curr_cl: String, name of cell line to analyze data for.
-    * store_loc: String: Directory to store the MAGeCK files to. (Default: current working directory)
-    * save_dir: String: Folder name to store the MAGeCK files to. (Default: 'GEMINI_Files')
+    * store_loc: String: Directory to store the GEMINI files to. (Default: current working directory)
+    * save_dir: String: Folder name to store the GEMINI files to. (Default: 'GEMINI_Files')
     * command_line_params: Optional list to load programming environment(s) to be able to run GEMINI through R (i.e. loading path, activating R environment). 
     * re_run: Boolean. Recreate and rerun the results instead of loading for subsequent analyses (Default: False)
 
@@ -1830,8 +1829,8 @@ def add_table_to_db(curr_counts, curr_results, table_name, engine_link):
     curr_results = curr_results.merge(curr_counts.drop_duplicates(subset = 'gene_pair'), how = 'left', left_index = True, right_on ='gene_pair').loc[:, ['gene_pair_id'] + list(curr_results.columns)]
 
     # first, get the metadata
-    db_metadata = sqlalchemy.MetaData(bind=engine_link)
-    db_metadata.reflect(engine_link)
+    db_metadata = sqlalchemy.MetaData()
+    db_metadata.reflect(bind=engine_link)
 
     # access the tables
     curr_table = db_metadata.tables[table_name]
@@ -1890,7 +1889,8 @@ def check_if_added_to_table(curr_counts, table_name, engine_link):
     print('Checking if score already computed: ' + table_name)
     
     # get available results
-    res = pd.read_sql_table(table_name, engine_link, index_col = 'id')
+    res = pd.read_sql_query(con=engine_link.connect(), 
+                              sql=sqlalchemy.text('SELECT * from ' + table_name.lower()), index_col = 'id')
     
     if res.shape[0] == 0:
         # none added, so proceed
@@ -1944,7 +1944,8 @@ def query_result_table(curr_counts, table_name, curr_study, curr_cl, engine_link
     print('Accessing table: ' + table_name)
     
     # get available results
-    res = pd.read_sql_table(table_name, engine_link, index_col = 'id')
+    res = pd.read_sql_query(con=engine_link.connect(), 
+                              sql=sqlalchemy.text('SELECT * from ' + table_name.lower()), index_col = 'id')
     
     # possible gene pairs
     curr_counts['gene_pair'] = ['|'.join(sorted([curr_counts['sgRNA_target_name_g1'].iloc[i], curr_counts['sgRNA_target_name_g2'].iloc[i]])) for i in range(curr_counts.shape[0])]

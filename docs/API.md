@@ -115,8 +115,8 @@ median_res = SLKB.run_median_scores(curr_counts, curr_study, curr_cl, full_norma
 * curr_cl: String, name of cell line to analyze data for.
 * full_normalization: Whether to normalize counts across the whole sample or according to target type (Default: False)
 * re_run: Boolean. Recreate and rerun the results instead of loading for subsequent analyses (Default: False)
-* store_loc: String: Directory to store the MAGeCK files to. (Default: current working directory)
-* save_dir: String: Folder name to store the MAGeCK files to. (Default: 'MEDIAN_Files')
+* store_loc: String: Directory to store the Median files to. (Default: current working directory)
+* save_dir: String: Folder name to store the Median files to. (Default: 'MEDIAN_Files')
 
 **Returns**:
 
@@ -135,8 +135,8 @@ sgRNA_res = SLKB.run_sgrna_scores(curr_counts, curr_study, curr_cl, full_normali
 * curr_cl: String, name of cell line to analyze data for.
 * full_normalization: Whether to normalize counts across the whole sample or according to target type (Default: False)
 * re_run: Boolean. Recreate and rerun the results instead of loading for subsequent analyses (Default: False)
-* store_loc: String: Directory to store the MAGeCK files to. (Default: current working directory)
-* save_dir: String: Folder name to store the MAGeCK files to. (Default: 'sgRNA-DERIVED_Files')
+* store_loc: String: Directory to store the sgRNA-Derived files to. (Default: current working directory)
+* save_dir: String: Folder name to store the sgRNA-Derived files to. (Default: 'sgRNA-DERIVED_Files')
 
 **Returns**:
 
@@ -151,6 +151,7 @@ mageck_res = SLKB.run_mageck_score(curr_counts.copy(), curr_study, curr_cl, stor
 ```
 
 **Params**:
+
 * curr_counts: Counts to calculate scores to.)
 * curr_study: String, name of study to analyze data for.
 * curr_cl: String, name of cell line to analyze data for.
@@ -172,11 +173,12 @@ horlbeck_res = SLKB.run_horlbeck_score(curr_counts.copy(), curr_study = curr_stu
 ```
 
 **Params**:
+
 * curr_counts: Counts to calculate scores to.)
 * curr_study: String, name of study to analyze data for.
 * curr_cl: String, name of cell line to analyze data for.
-* store_loc: String: Directory to store the MAGeCK files to. (Default: current working directory)
-* save_dir: String: Folder name to store the MAGeCK files to. (Default: 'Horlbeck_Files')
+* store_loc: String: Directory to store the Horlbeck files to. (Default: current working directory)
+* save_dir: String: Folder name to store the Horlbeck files to. (Default: 'Horlbeck_Files')
 * do_preprocessing: Boolean. Run Horlbeck preprocessing (Default: True)
 * re_run: Boolean. Recreate and rerun the results instead of loading for subsequent analyses (Default: False)
 
@@ -193,11 +195,12 @@ gemini_res = run_gemini_score(curr_counts.copy(), curr_study = curr_study, curr_
 ```
 
 **Params**:
+
 * curr_counts: Counts to calculate scores to.)
 * curr_study: String, name of study to analyze data for.
 * curr_cl: String, name of cell line to analyze data for.
-* store_loc: String: Directory to store the MAGeCK files to. (Default: current working directory)
-* save_dir: String: Folder name to store the MAGeCK files to. (Default: 'GEMINI_Files')
+* store_loc: String: Directory to store the GEMINI files to. (Default: current working directory)
+* save_dir: String: Folder name to store the GEMINI files to. (Default: 'GEMINI_Files')
 * command_line_params: Optional list to load programming environment(s) to be able to run GEMINI through R (i.e. loading path, activating R environment). 
 * re_run: Boolean. Recreate and rerun the results instead of loading for subsequent analyses (Default: False)
 
@@ -218,13 +221,13 @@ SLKB.check_if_added_to_table(curr_counts, score_name, SLKB_engine)
 
 * curr_counts: Counts to calculate the scores to.
 * score_name: Table to insert the scores to. Must be any of the 7 scoring table names:
-    * HORLBECK_SCORE
-    * MEDIAN_B_SCORE
-    * MEDIAN_NB_SCORE
-    * GEMINI_SCORE
-    * MAGECK_SCORE
-    * SGRNA_DERIVED_B_SCORE
-    * SGRNA_DERIVED_NB_SCORE
+    * horlbeck_score
+    * median_b_score
+    * median_nb_score
+    * sgrna_derived_b_score
+    * sgrna_derived_nb_score
+    * gemini_score
+    * mageck_score
 
 **Returns**:
 
