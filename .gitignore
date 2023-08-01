@@ -7,3 +7,4 @@ help.ignore
 *dist
 *site
 *__pycache__
+.Rproj.user
