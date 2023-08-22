@@ -13,7 +13,7 @@ SLKB (Synthetic Lethality Knowledge Base) is a knowledge base for CRISPR-Cas9 du
 
 ## Installation
 
-SLKB pipeline can be installed either through PyPI (Recommended - Upon Release)
+SLKB pipeline can be installed through PyPI (Upon Release)
 
 ```
 pip install SLKB
@@ -22,7 +22,7 @@ pip install SLKB
 Alternatively: 
 ```
 python setup.py sdist
-pip install dist/SLKB-1.0.0.tar.gz --user
+pip install dist/SLKB-1.0.1.tar.gz --user
 ```
 
 ## Pipeline and Documentation
