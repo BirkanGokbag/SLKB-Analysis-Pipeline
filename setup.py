@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import ast
 import io
-import re
 import os
-from setuptools import find_packages, setup
+from setuptools import setup
 
 DEPENDENCIES = ['pandas==1.5.3',
 'numpy==1.21.0',

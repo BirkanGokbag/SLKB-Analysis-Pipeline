@@ -9,11 +9,11 @@
 
 ## Introduction
 
-SLKB (Synthetic Lethality Knowledge Base) is a knowledge base for CRISPR-Cas9 dual knockdown (CDKO) experiments. The details on deposited data and available functions can be found [within the paper.](https://github.com/BirkanGokbag/SLKB-Analysis-Pipeline)
+SLKB (Synthetic Lethality Knowledge Base) is a knowledge base for CRISPR-Cas9 dual knockdown (CDKO) experiments. The details on deposited data and available functions can be found [within the paper.](https://doi.org/10.1093/nar/gkad806)
 
 ## Installation
 
-SLKB pipeline can be installed through PyPI (Upon Release)
+SLKB pipeline can be installed through PyPI.
 
 ```
 pip install SLKB
@@ -27,7 +27,7 @@ pip install dist/SLKB-1.0.1.tar.gz --user
 
 ## Pipeline and Documentation
 
-You can access the full documentation at [the GitHub page](https://birkangokbag.github.io/SLKB-Analysis-Pipeline/)
+You can access the full documentation at the following [link.](https://slkb.docs.osubmi.org/)
 
 ## Contact
 
