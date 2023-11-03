@@ -2,7 +2,7 @@
     "description": "No description provided.", 
     "license": "GPL 3.0", 
     "title": "BirkanGokbag/SLKB-Analysis-Pipeline: Initial SLKB Release", 
-    "version": "1.0.1", 
+    "version": "1.0.11", 
     "upload_type": "software", 
     "publication_date": "2023-08-22", 
     "creators": [
@@ -14,7 +14,7 @@
     "related_identifiers": [
         {
             "scheme": "url", 
-            "identifier": "https://github.com/BirkanGokbag/SLKB-Analysis-Pipeline/tree/1.0.1", 
+            "identifier": "https://github.com/BirkanGokbag/SLKB-Analysis-Pipeline/tree/1.0.11", 
             "relation": "isSupplementTo"
         }, 
         {

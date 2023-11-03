@@ -23,7 +23,7 @@ with io.open(os.path.join(CURDIR, "README.md"), "r", encoding="utf-8") as f:
 
 setup(
     name="SLKB",
-    version="1.0.1",
+    version="1.0.11",
     author="Birkan Gökbağ",
     author_email="birkan.gokbag@gmail.com",
     description="SLKB: Synthetic lethality knowledge base for gene combination double knockout experiments",

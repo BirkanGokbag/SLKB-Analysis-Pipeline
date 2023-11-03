@@ -22,7 +22,7 @@ pip install SLKB
 Alternatively: 
 ```
 python setup.py sdist
-pip install dist/SLKB-1.0.1.tar.gz --user
+pip install dist/SLKB-1.0.11.tar.gz --user
 ```
 
 ## Pipeline and Documentation
